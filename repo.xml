@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <extensions>
 	<details>
-		<title lang="EN">FilterMusic.net plugin</title>
+		<title lang="EN">d5c0d3 plug-in repository</title>
 	</details>
 	<plugins>
 		<plugin name="FilterMusic" version="0.2" minTarget="7.6" maxTarget="7.*">
