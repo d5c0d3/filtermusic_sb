@@ -9,8 +9,8 @@
 			<desc lang="EN">This plugin will provide the internet radio stations listed on FilterMusic.net. Internet radio stations are ordered in sub categories.</desc>
 			<creator>Denny Schanze</creator>
 			<email>d5c0d3@gmail.com</email>
-			<url>https://github.com/d5c0d3/filtermusic_sb/blob/master/FilterMusic_0_2.zip</url>
-			<link>https://github.com/d5c0d3/filtermusic_sb</link>
+			<url>http://github.com/d5c0d3/filtermusic_sb/blob/master/FilterMusic_0_2.zip</url>
+			<link>http://github.com/d5c0d3/filtermusic_sb</link>
 			<sha>252aceb0408d44d5e43eb6e7861c3add6af9cc91</sha>
 		</plugin>
     </plugins>
