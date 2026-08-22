@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.3.3 (2026-08-22)
+
+- Switched attribution from a full legal name to the `d5c0d3` handle throughout (`LICENSE`,
+  `Plugin.pm`, `install.xml`) - a pseudonym is legally sufficient for copyright attribution, and
+  `repo.xml` already used it.
+
 ## 1.3.2 (2026-08-22)
 
 - Added `LICENSE` (MIT), matching the two comparable community LMS plugins checked
