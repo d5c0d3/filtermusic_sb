@@ -3,13 +3,12 @@
 <extension>
 	<name>FilterMusic</name>
 	<module>Plugins::FilterMusic::Plugin</module>
-	<version>1.3.3</version>
+	<version>1.3.4</version>
 	<description>PLUGIN_FILTERMUSIC_DESC</description>
 	<creator>d5c0d3</creator>
-	<email>d5c0d3@gmail.com</email>
 	<category>radio</category>
 	<defaultState>enabled</defaultState>
-	<homepageURL>https://github.com/d5c0d3/filtermusic_sb</homepageURL>
+	<homepageURL>https://github.com/d5c0d3/filtermusic_sb/issues</homepageURL>
 	<icon>plugins/FilterMusic/html/images/fm.png</icon>
 	<optionsURL>plugins/FilterMusic/settings/basic.html</optionsURL>
 	<targetApplication>

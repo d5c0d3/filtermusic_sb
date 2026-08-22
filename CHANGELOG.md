@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.3.4 (2026-08-22)
+
+- Replaced the public contact email with a pointer to GitHub Issues throughout: removed `<email>`
+  from `repo.xml` and `install.xml` (confirmed optional against several real-world plugin
+  repositories, including `michaelherger/lms-plugin-tidal`), pointed `repo.xml`'s `<link>` and
+  `install.xml`'s `<homepageURL>` at `https://github.com/d5c0d3/filtermusic_sb/issues`, and updated
+  `Plugin.pm`'s header comment to match.
+
 ## 1.3.3 (2026-08-22)
 
 - Switched attribution from a full legal name to the `d5c0d3` handle throughout (`LICENSE`,

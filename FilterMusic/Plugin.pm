@@ -3,11 +3,13 @@ package Plugins::FilterMusic::Plugin;
 #########################################################################
 # Plugin: FilterMusic                                                   #
 #                                                                       #
-# Version: 1.3.3                                                       #
+# Version: 1.3.4                                                       #
 #                                                                       #
 # Website: https://filtermusic.net                                     #
 #                                                                       #
-# Author: d5c0d3 (d5c0d3 at gmail dot com)                             #
+# Author: d5c0d3                                                       #
+#                                                                       #
+# Issues: https://github.com/d5c0d3/filtermusic_sb/issues              #
 #                                                                       #
 # License: MIT (see LICENSE)                                           #
 #                                                                       #
