@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.3.1 (2026-08-22)
+
+- **Fixed a silent-logging bug**: the fetch-failure path logged via `$log->warn(...)`, but the
+  plugin's log category defaults to level `ERROR`, and `WARN` sits below that threshold in
+  `Slim::Utils::Log`'s severity order (`DEBUG < INFO < WARN < ERROR < FATAL`). That meant "could not
+  reach filtermusic.net" (the site being down, a network issue, etc) produced no visible log line at
+  all under default settings, while a parse failure (broken markup) did. Both now log at `error`.
+
 ## 1.3.0 (2026-08-22)
 
 - **Removed the persistent station-list cache entirely.** Since 1.2.0 every visit to the FilterMusic

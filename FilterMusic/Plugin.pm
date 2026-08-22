@@ -3,7 +3,7 @@ package Plugins::FilterMusic::Plugin;
 #########################################################################
 # Plugin: FilterMusic                                                   #
 #                                                                       #
-# Version: 1.3.0                                                       #
+# Version: 1.3.1                                                       #
 #                                                                       #
 # Website: https://filtermusic.net                                     #
 #                                                                       #
@@ -155,7 +155,11 @@ sub toplevel {
 		# failing outright, if we have one
 		sub {
 			my ($http, $error) = @_;
-			$log->warn("error fetching filtermusic.net: $error");
+			# Not ->warn(): this category's defaultLevel is ERROR, and WARN
+			# sits below that threshold in Slim::Utils::Log's severity order
+			# (DEBUG < INFO < WARN < ERROR < FATAL) - a warn() here would be
+			# silently dropped for anyone who hasn't raised the log level.
+			$log->error("error fetching filtermusic.net: $error");
 
 			if ($lastGoodMenu) {
 				$log->debug('serving last known good FilterMusic menu after a fetch failure');
