@@ -25,6 +25,15 @@ SETUP_PLUGIN_FILTERMUSIC_CACHETTL
 SETUP_PLUGIN_FILTERMUSIC_CACHETTL_DESC
 	EN	How long (in minutes) the station list is cached before FilterMusic.net is checked again.
 
+SETUP_PLUGIN_FILTERMUSIC_BACKDROP
+	EN	Background Photo (Material Skin)
+
+SETUP_PLUGIN_FILTERMUSIC_BACKDROP_DESC
+	EN	Show one of filtermusic.net's own rotating wallpaper photos as the background when browsing FilterMusic categories in Material Skin. Requires "Draw background" to also be enabled in Material Skin's own Interface settings. Has no effect on other skins, apps, or players.
+
+SETUP_PLUGIN_FILTERMUSIC_BACKDROP_CURRENT
+	EN	Current photo:
+
 SETUP_PLUGIN_FILTERMUSIC_CLEARCACHE
 	EN	Station List Cache
 

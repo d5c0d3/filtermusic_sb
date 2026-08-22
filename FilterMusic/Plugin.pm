@@ -3,7 +3,7 @@ package Plugins::FilterMusic::Plugin;
 #########################################################################
 # Plugin: FilterMusic                                                   #
 #                                                                       #
-# Version: 1.0.0                                                       #
+# Version: 1.1.0                                                       #
 #                                                                       #
 # Website: https://filtermusic.net                                     #
 #                                                                       #
@@ -54,6 +54,7 @@ my $log = Slim::Utils::Log->addLogCategory({
 
 my $prefs = preferences('plugin.filtermusic');
 my $cache;
+my $lastWallpaperCredit = '';
 
 # A small, self-contained entity decoder so we don't depend on HTML::Entities
 # (part of the same HTML-Parser CPAN distribution as the HTML::Tagset module
@@ -88,6 +89,7 @@ sub initPlugin {
 
 	$prefs->init({
 		cacheTTLMinutes => CACHE_TTL_MINUTES,
+		showBackdrop    => 1,
 	});
 
 	$cache = Slim::Utils::Cache->new();
@@ -108,6 +110,8 @@ sub clearCache {
 	$cache->remove(CACHE_KEY) if $cache;
 }
 
+sub lastWallpaperCredit { $lastWallpaperCredit }
+
 # this is called when the user browses into the menu
 sub toplevel {
 	my ($client, $callback, $args) = @_;
@@ -123,7 +127,16 @@ sub toplevel {
 		# fetch success
 		sub {
 			my $http = shift;
-			my $menu = eval { _parseMenu($http->content) };
+			my $content = $http->content;
+
+			my $wallpaperUrl;
+			if ($prefs->get('showBackdrop')) {
+				my ($url, $credit) = _parseWallpaper($content);
+				$wallpaperUrl = $url;
+				$lastWallpaperCredit = $credit || '';
+			}
+
+			my $menu = eval { _parseMenu($content, $wallpaperUrl) };
 
 			if ($@ || !$menu || !scalar @$menu) {
 				$log->error('failed to parse filtermusic.net: ' . ($@ || 'no categories found'));
@@ -162,7 +175,7 @@ sub toplevel {
 # entries with the direct stream URL already inlined, so no per-station
 # page fetch is required.
 sub _parseMenu {
-	my ($content) = @_;
+	my ($content, $wallpaperUrl) = @_;
 
 	my @menu;
 
@@ -198,10 +211,31 @@ sub _parseMenu {
 		push @menu, {
 			name  => $category,
 			items => \@stations,
+			# Only used by skins that render a per-node backdrop from a menu
+			# item's own icon (e.g. Material Skin, when its "Draw background"
+			# setting is on). Every other client already ignores unknown
+			# fields on a menu node, same as the per-station 'icon' above.
+			(defined $wallpaperUrl ? (image => $wallpaperUrl) : ()),
 		};
 	}
 
 	return \@menu;
+}
+
+# filtermusic.net renders a random full-page wallpaper photo (with a credit
+# caption) on every homepage load - see the <aside id="wallpaper"> markup.
+# We piggyback on the same request used for the station list rather than
+# fetching a separate wallpaper feed, so this doesn't add any extra load on
+# their server.
+sub _parseWallpaper {
+	my ($content) = @_;
+
+	my ($url) = $content =~ m{class="wallpaper_container[^"]*"[^>]*style="[^"]*url\((?:&quot;|")([^&"]+)(?:&quot;|")\)}s;
+	my ($credit) = $content =~ m{id="wallpaper_credits"[^>]*>([^<]*)<};
+
+	return (undef, undef) unless $url;
+
+	return (_decodeEntities($url), _decodeEntities($credit || ''));
 }
 
 1;

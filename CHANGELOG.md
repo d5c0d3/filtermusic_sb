@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.1.0 (2026-08-22)
+
+- **Added an optional Material Skin background photo.** filtermusic.net renders a random full-page
+  wallpaper photo (with a credit caption) on every homepage load; the plugin now piggybacks on the
+  station-list request it already makes to grab that same photo and applies it as the `image` on
+  each genre category. Skins that read a menu node's own icon as its browse backdrop (currently
+  Material Skin, when its own "Draw background" setting is on) will show it; every other client
+  ignores the extra field, the same as the per-station artwork already added in 1.0.0. It changes
+  whenever the station-list cache refreshes (default every 6h) rather than per-category, to avoid
+  adding extra requests to filtermusic.net beyond the one fetch the plugin already makes.
+- Added a `showBackdrop` setting (on by default) to turn this off, and the settings page now shows
+  the currently-applied photo's credit.
+- Fixed the settings page's form field names: `Slim::Web::Settings`'s base `handler` expects them
+  prefixed `pref_<name>` (e.g. `pref_cacheTTLMinutes`) to be saved at all — the 1.0.0 page saved
+  cache-duration changes under an unprefixed name, which the base handler never picked up.
+
 ## 1.0.0 (2026-08-22)
 
 Full rewrite to revive the plugin on current Lyrion Music Server / LMS installs. The 0.2 release
