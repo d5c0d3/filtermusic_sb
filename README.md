@@ -7,6 +7,30 @@ the same genre categories used on the site (House/Dance, Techno/Trance, Jazz, Ro
 This repository is both the plugin's source and its self-hosted plugin repository (`repo.xml`), which
 GitHub Pages serves at <https://d5c0d3.github.io/filtermusic_sb/repo.xml>.
 
+## Features
+
+- **Browse by genre**, matching filtermusic.net's own categories (House/Dance, Techno/Trance,
+  Electronica/Industrial, Breaks/DrumnBass, HipHop/Rap, Reggae/Dub/Dancehall, Funk/Soul/Disco, Lounge
+  Grooves, Downtempo/Ambient, Various/Mainstream, 60s/70s/80s/90s, Classical, Jazz, Rock/Metal,
+  International/Ethnic).
+- **Direct playback** - each station plays straight from the stream URL filtermusic.net already lists;
+  no extra per-station page fetch.
+- **Station artwork** for every entry.
+- **Optional background photo for Material Skin** - shows filtermusic.net's own current wallpaper
+  photo behind the category list. A new photo is picked each time you enter the FilterMusic menu and
+  stays fixed until you leave and come back, same as filtermusic.net's own reload-driven behavior.
+  Toggle it, and see the current photo's credit, from the plugin's Settings page. No effect on other
+  skins, apps, or physical players.
+- **Add to Favorites** shortcut from the Settings page, for pinning FilterMusic to your Favorites menu.
+- **Resilient to filtermusic.net being down or changing**: if a visit's fetch fails, or the site's
+  markup changes enough to break parsing, the plugin falls back to the last successful load instead of
+  showing an empty menu or hard error - see "How it works" below.
+- **No persistent cache** - every visit is a fresh read of filtermusic.net, so what you see always
+  matches the current site (aside from the fallback case above).
+- **No risky dependencies** - the original 0.2 release depended on a module LMS doesn't fully bundle
+  and failed to load on any current server; this rewrite only uses LMS's own bundled Perl. See
+  "History" below.
+
 ## Installing
 
 In LMS: **Settings → Plugins → Additional Repositories**, add:
@@ -54,7 +78,8 @@ fresh page load. Toggle with the "Background Photo (Material Skin)" setting.
 The original 0.2 release (2011) scraped an older, jQuery-accordion version of the site using
 `HTML::TreeBuilder`. That module's dependencies (`HTML::Tagset`) are not bundled with LMS, so the
 0.2 plugin fails to load at all on any reasonably modern server
-(see [Logitech/slimserver#594](https://github.com/Logitech/slimserver/issues/594)). Version 1.0.0 is a
+(see [Logitech/slimserver#594](https://github.com/Logitech/slimserver/issues/594)). Version 1.0.0 was a
 full rewrite: no `HTML::TreeBuilder` dependency, updated target versions
-(`LogitechMediaServer` 8.0–9.*), response caching, a working Settings page, and parsing rebuilt against
-the current filtermusic.net markup. See `CHANGELOG.md` for details.
+(`LogitechMediaServer` 8.0–9.*), a working Settings page, and parsing rebuilt against the current
+filtermusic.net markup. Later 1.x releases added the background photo and simplified the caching
+approach down to what's described above. See `CHANGELOG.md` for the full version-by-version detail.
