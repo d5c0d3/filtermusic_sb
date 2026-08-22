@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.3.2 (2026-08-22)
+
+- Added `LICENSE` (MIT), matching the two comparable community LMS plugins checked
+  (`lyr-radio-browser`, `lms-somafm`) and the spirit of the original 0.2 release's own "feel free to
+  use my script, just credit it" note. Covers this plugin's own code only - the station data, artwork,
+  and background photos it reads from filtermusic.net remain filtermusic.net's own content.
+- README now has a scannable `Features` summary and a `License` section.
+
 ## 1.3.1 (2026-08-22)
 
 - **Fixed a silent-logging bug**: the fetch-failure path logged via `$log->warn(...)`, but the

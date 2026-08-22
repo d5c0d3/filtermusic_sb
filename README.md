@@ -83,3 +83,9 @@ full rewrite: no `HTML::TreeBuilder` dependency, updated target versions
 (`LogitechMediaServer` 8.0–9.*), a working Settings page, and parsing rebuilt against the current
 filtermusic.net markup. Later 1.x releases added the background photo and simplified the caching
 approach down to what's described above. See `CHANGELOG.md` for the full version-by-version detail.
+
+## License
+
+MIT - see `LICENSE`. That covers this plugin's own code; the station data, artwork, and background
+photos it reads from filtermusic.net remain filtermusic.net's own content, not licensed by this
+project.
