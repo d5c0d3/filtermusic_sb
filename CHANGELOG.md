@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.2.0 (2026-08-22)
+
+- **The background photo now refreshes on every visit to the FilterMusic menu**, not just every
+  ~6h. filtermusic.net only rolls its wallpaper on a full page reload, and a full reload is
+  effectively what happens each time the FilterMusic menu is (re-)entered, so entering FilterMusic
+  now always does a live fetch to pick up whatever photo the site is currently showing. Browsing
+  *within* FilterMusic (into a category, a station) never calls back into the plugin - the whole
+  subtree is already in that response - so the photo stays fixed for that visit and only changes
+  the next time the menu is entered.
+- The (much larger, slower-changing) 236-station list is unaffected by this: it's still only
+  re-parsed when its own cache (`Cache Duration` setting) has expired; a cache hit just gets the
+  freshly-fetched photo attached to it. Re-parsing and photo-refreshing are independent now.
+- Added a fallback: if the live fetch fails (network issue) but a cached station list exists, browse
+  still works (just without a fresh photo for that visit) instead of showing a hard error - since
+  visits now always attempt a fetch, a transient failure would otherwise be more visible than before.
+
 ## 1.1.0 (2026-08-22)
 
 - **Added an optional Material Skin background photo.** filtermusic.net renders a random full-page

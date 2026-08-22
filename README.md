@@ -26,12 +26,27 @@ The FilterMusic plugin will then appear in the plugin list to install.
 `FilterMusic/Plugin.pm` fetches `https://filtermusic.net/` and parses the server-rendered station
 list directly out of the page markup (there is no public API). Each `<article data-listen="...">`
 element on the page already carries the direct stream URL, station name, description and artwork, so
-a single request builds the whole menu. The result is cached (`Slim::Utils::Cache`, default 6 hours,
-configurable in the plugin's Settings page) so normal browsing doesn't re-fetch the site every time.
+a single request builds the whole menu.
+
+Every visit to the FilterMusic menu does a live fetch (see "Background photo" below for why), but the
+station list itself is only re-parsed when its own cache (`Slim::Utils::Cache`, default 6 hours,
+configurable in the plugin's Settings page) has expired - a cache hit just reuses the previously
+parsed list. Browsing *within* FilterMusic (into a category, a station) never calls back into the
+plugin at all, since the whole subtree is already in the response for the top-level menu.
 
 Because this depends on filtermusic.net's current HTML structure, a redesign of that site can break
 parsing. If browsing FilterMusic in LMS starts showing an empty menu or a "could not read the station
-list" error, check `FilterMusic/Plugin.pm`'s `_parseMenu` against the site's current markup first.
+list" error, check `FilterMusic/Plugin.pm`'s `_parseStations` against the site's current markup first.
+
+### Background photo (Material Skin)
+
+filtermusic.net shows a random full-page wallpaper photo (with a credit caption) on every page load.
+The plugin reads that same photo off the homepage fetch it already makes and attaches it as the
+`image` on every category node. Skins that use a menu node's own icon as a browse backdrop - currently
+Material Skin, when its own "Draw background" Interface setting is on - show it; every other client
+ignores the extra field. A new photo is picked each time the FilterMusic menu is entered and stays
+fixed until you leave and come back, mirroring how filtermusic.net itself only rolls the photo on a
+fresh page load. Toggle with the "Background Photo (Material Skin)" setting.
 
 ## History
 

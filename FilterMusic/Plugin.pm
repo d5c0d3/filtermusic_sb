@@ -3,7 +3,7 @@ package Plugins::FilterMusic::Plugin;
 #########################################################################
 # Plugin: FilterMusic                                                   #
 #                                                                       #
-# Version: 1.1.0                                                       #
+# Version: 1.2.0                                                       #
 #                                                                       #
 # Website: https://filtermusic.net                                     #
 #                                                                       #
@@ -112,53 +112,37 @@ sub clearCache {
 
 sub lastWallpaperCredit { $lastWallpaperCredit }
 
-# this is called when the user browses into the menu
+# this is called every time the user browses into the menu. Unlike the
+# station list (cached - see CACHE_TTL_MINUTES), this always does a live
+# fetch: filtermusic.net itself only rolls its wallpaper photo on a fresh
+# page load, so mirroring that means checking on every visit, not on a
+# timer. Browsing *within* FilterMusic (into a category, etc) never calls
+# back into the plugin at all - the whole tree below this node is already
+# in the response - so the photo naturally stays fixed for that visit and
+# only changes the next time this node is entered.
 sub toplevel {
 	my ($client, $callback, $args) = @_;
-
-	if ($cache && (my $cached = $cache->get(CACHE_KEY))) {
-		$log->debug('serving FilterMusic menu from cache');
-		$callback->($cached);
-		return;
-	}
 
 	# use server framework for async http fetch
 	Slim::Networking::SimpleAsyncHTTP->new(
 		# fetch success
 		sub {
 			my $http = shift;
-			my $content = $http->content;
-
-			my $wallpaperUrl;
-			if ($prefs->get('showBackdrop')) {
-				my ($url, $credit) = _parseWallpaper($content);
-				$wallpaperUrl = $url;
-				$lastWallpaperCredit = $credit || '';
-			}
-
-			my $menu = eval { _parseMenu($content, $wallpaperUrl) };
-
-			if ($@ || !$menu || !scalar @$menu) {
-				$log->error('failed to parse filtermusic.net: ' . ($@ || 'no categories found'));
-				$callback->([{
-					name => cstring($client, 'PLUGIN_FILTERMUSIC_PARSE_ERROR'),
-					type => 'text',
-				}]);
-				return;
-			}
-
-			if ($cache) {
-				my $ttl = ($prefs->get('cacheTTLMinutes') || CACHE_TTL_MINUTES) * 60;
-				$cache->set(CACHE_KEY, $menu, $ttl);
-			}
-
-			$callback->($menu);
+			_handleFetchedContent($client, $callback, $http->content);
 		},
 
-		# fetch failure - send back the error
+		# fetch failure - fall back to a cached station list (without a
+		# fresh photo) rather than failing outright, if we have one
 		sub {
 			my ($http, $error) = @_;
 			$log->warn("error fetching filtermusic.net: $error");
+
+			if ($cache && (my $stations = $cache->get(CACHE_KEY))) {
+				$log->debug('serving FilterMusic station list from cache after fetch failure');
+				$callback->($stations);
+				return;
+			}
+
 			$callback->([{
 				name => cstring($client, 'PLUGIN_FILTERMUSIC_FETCH_ERROR'),
 				type => 'text',
@@ -169,13 +153,49 @@ sub toplevel {
 	)->get(FEED_URL, 'User-Agent' => USER_AGENT);
 }
 
+sub _handleFetchedContent {
+	my ($client, $callback, $content) = @_;
+
+	my $wallpaperUrl;
+	if ($prefs->get('showBackdrop')) {
+		my ($url, $credit) = _parseWallpaper($content);
+		$wallpaperUrl = $url;
+		$lastWallpaperCredit = $credit if $url;
+	}
+
+	my $stations = $cache ? $cache->get(CACHE_KEY) : undef;
+
+	if ($stations) {
+		$log->debug('serving FilterMusic station list from cache');
+	}
+	else {
+		$stations = eval { _parseStations($content) };
+
+		if ($@ || !$stations || !scalar @$stations) {
+			$log->error('failed to parse filtermusic.net: ' . ($@ || 'no categories found'));
+			$callback->([{
+				name => cstring($client, 'PLUGIN_FILTERMUSIC_PARSE_ERROR'),
+				type => 'text',
+			}]);
+			return;
+		}
+
+		if ($cache) {
+			my $ttl = ($prefs->get('cacheTTLMinutes') || CACHE_TTL_MINUTES) * 60;
+			$cache->set(CACHE_KEY, $stations, $ttl);
+		}
+	}
+
+	$callback->(_withBackdrop($stations, $wallpaperUrl));
+}
+
 # Parse the server-rendered accordion markup on filtermusic.net's homepage.
 # The site (an Astro static build) emits one <details> block per genre
 # category, each containing <article data-title=... data-listen=... ...>
 # entries with the direct stream URL already inlined, so no per-station
 # page fetch is required.
-sub _parseMenu {
-	my ($content, $wallpaperUrl) = @_;
+sub _parseStations {
+	my ($content) = @_;
 
 	my @menu;
 
@@ -211,15 +231,24 @@ sub _parseMenu {
 		push @menu, {
 			name  => $category,
 			items => \@stations,
-			# Only used by skins that render a per-node backdrop from a menu
-			# item's own icon (e.g. Material Skin, when its "Draw background"
-			# setting is on). Every other client already ignores unknown
-			# fields on a menu node, same as the per-station 'icon' above.
-			(defined $wallpaperUrl ? (image => $wallpaperUrl) : ()),
 		};
 	}
 
 	return \@menu;
+}
+
+# Attach the current visit's wallpaper photo to each category node without
+# mutating the (possibly cached) station list itself. Only used by skins
+# that render a per-node backdrop from a menu item's own icon (e.g. Material
+# Skin, when its "Draw background" setting is on) - every other client
+# already ignores unknown fields on a menu node, same as the per-station
+# 'icon' set in _parseStations.
+sub _withBackdrop {
+	my ($menu, $wallpaperUrl) = @_;
+
+	return $menu unless defined $wallpaperUrl;
+
+	return [ map { { %$_, image => $wallpaperUrl } } @$menu ];
 }
 
 # filtermusic.net renders a random full-page wallpaper photo (with a credit
