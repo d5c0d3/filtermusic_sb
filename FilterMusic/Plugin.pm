@@ -3,7 +3,7 @@ package Plugins::FilterMusic::Plugin;
 #########################################################################
 # Plugin: FilterMusic                                                   #
 #                                                                       #
-# Version: 1.2.0                                                       #
+# Version: 1.3.0                                                       #
 #                                                                       #
 # Website: https://filtermusic.net                                     #
 #                                                                       #
@@ -26,6 +26,15 @@ package Plugins::FilterMusic::Plugin;
 #    fails to load (see Logitech/slimserver#594). This version parses  #
 #    the markup with plain regexes against LMS core Perl only, so it   #
 #    has no risky third-party module dependency.                      #
+#  - There's no persistent cache: every visit to the FilterMusic menu  #
+#    fetches and parses filtermusic.net fresh, the same way visiting   #
+#    the site itself in a browser loads everything - stations and the  #
+#    background photo alike - in one shot. Browsing *within*           #
+#    FilterMusic (into a category, a station) never calls back into    #
+#    the plugin, since the whole subtree is already in that response,  #
+#    which is the LMS equivalent of navigating a page that's already   #
+#    loaded. The only state kept in memory is the last successful      #
+#    result, used purely as a fallback if a fetch ever fails.          #
 #########################################################################
 
 use strict;
@@ -34,17 +43,14 @@ use warnings;
 use base qw(Slim::Plugin::OPMLBased);
 
 use Slim::Networking::SimpleAsyncHTTP;
-use Slim::Utils::Cache;
 use Slim::Utils::Log;
 use Slim::Utils::Prefs;
 use Slim::Utils::Strings qw(cstring);
 
 use Plugins::FilterMusic::Settings;
 
-use constant FEED_URL          => 'https://filtermusic.net/';
-use constant CACHE_KEY         => 'menu';
-use constant CACHE_TTL_MINUTES => 360; # 6 hours - matches the site's "almost daily" update cadence
-use constant USER_AGENT        => 'FilterMusic-LMS-Plugin/1.0 (+https://github.com/d5c0d3/filtermusic_sb)';
+use constant FEED_URL   => 'https://filtermusic.net/';
+use constant USER_AGENT => 'FilterMusic-LMS-Plugin/1.0 (+https://github.com/d5c0d3/filtermusic_sb)';
 
 my $log = Slim::Utils::Log->addLogCategory({
 	'category'     => 'plugin.filtermusic',
@@ -53,8 +59,8 @@ my $log = Slim::Utils::Log->addLogCategory({
 });
 
 my $prefs = preferences('plugin.filtermusic');
-my $cache;
 my $lastWallpaperCredit = '';
+my $lastGoodMenu;
 
 # A small, self-contained entity decoder so we don't depend on HTML::Entities
 # (part of the same HTML-Parser CPAN distribution as the HTML::Tagset module
@@ -88,11 +94,8 @@ sub initPlugin {
 	my $class = shift;
 
 	$prefs->init({
-		cacheTTLMinutes => CACHE_TTL_MINUTES,
-		showBackdrop    => 1,
+		showBackdrop => 1,
 	});
-
-	$cache = Slim::Utils::Cache->new();
 
 	Plugins::FilterMusic::Settings->new;
 
@@ -106,20 +109,9 @@ sub initPlugin {
 	);
 }
 
-sub clearCache {
-	$cache->remove(CACHE_KEY) if $cache;
-}
-
 sub lastWallpaperCredit { $lastWallpaperCredit }
 
-# this is called every time the user browses into the menu. Unlike the
-# station list (cached - see CACHE_TTL_MINUTES), this always does a live
-# fetch: filtermusic.net itself only rolls its wallpaper photo on a fresh
-# page load, so mirroring that means checking on every visit, not on a
-# timer. Browsing *within* FilterMusic (into a category, etc) never calls
-# back into the plugin at all - the whole tree below this node is already
-# in the response - so the photo naturally stays fixed for that visit and
-# only changes the next time this node is entered.
+# this is called every time the user browses into the menu
 sub toplevel {
 	my ($client, $callback, $args) = @_;
 
@@ -128,18 +120,46 @@ sub toplevel {
 		# fetch success
 		sub {
 			my $http = shift;
-			_handleFetchedContent($client, $callback, $http->content);
+			my $content = $http->content;
+
+			my $wallpaperUrl;
+			if ($prefs->get('showBackdrop')) {
+				my ($url, $credit) = _parseWallpaper($content);
+				$wallpaperUrl = $url;
+				$lastWallpaperCredit = $credit if $url;
+			}
+
+			my $menu = eval { _parseMenu($content, $wallpaperUrl) };
+
+			if ($@ || !$menu || !scalar @$menu) {
+				$log->error('failed to parse filtermusic.net: ' . ($@ || 'no categories found'));
+
+				if ($lastGoodMenu) {
+					$log->debug('serving last known good FilterMusic menu after a parse failure');
+					$callback->($lastGoodMenu);
+					return;
+				}
+
+				$callback->([{
+					name => cstring($client, 'PLUGIN_FILTERMUSIC_PARSE_ERROR'),
+					type => 'text',
+				}]);
+				return;
+			}
+
+			$lastGoodMenu = $menu;
+			$callback->($menu);
 		},
 
-		# fetch failure - fall back to a cached station list (without a
-		# fresh photo) rather than failing outright, if we have one
+		# fetch failure - fall back to the last successful result rather than
+		# failing outright, if we have one
 		sub {
 			my ($http, $error) = @_;
 			$log->warn("error fetching filtermusic.net: $error");
 
-			if ($cache && (my $stations = $cache->get(CACHE_KEY))) {
-				$log->debug('serving FilterMusic station list from cache after fetch failure');
-				$callback->($stations);
+			if ($lastGoodMenu) {
+				$log->debug('serving last known good FilterMusic menu after a fetch failure');
+				$callback->($lastGoodMenu);
 				return;
 			}
 
@@ -153,49 +173,13 @@ sub toplevel {
 	)->get(FEED_URL, 'User-Agent' => USER_AGENT);
 }
 
-sub _handleFetchedContent {
-	my ($client, $callback, $content) = @_;
-
-	my $wallpaperUrl;
-	if ($prefs->get('showBackdrop')) {
-		my ($url, $credit) = _parseWallpaper($content);
-		$wallpaperUrl = $url;
-		$lastWallpaperCredit = $credit if $url;
-	}
-
-	my $stations = $cache ? $cache->get(CACHE_KEY) : undef;
-
-	if ($stations) {
-		$log->debug('serving FilterMusic station list from cache');
-	}
-	else {
-		$stations = eval { _parseStations($content) };
-
-		if ($@ || !$stations || !scalar @$stations) {
-			$log->error('failed to parse filtermusic.net: ' . ($@ || 'no categories found'));
-			$callback->([{
-				name => cstring($client, 'PLUGIN_FILTERMUSIC_PARSE_ERROR'),
-				type => 'text',
-			}]);
-			return;
-		}
-
-		if ($cache) {
-			my $ttl = ($prefs->get('cacheTTLMinutes') || CACHE_TTL_MINUTES) * 60;
-			$cache->set(CACHE_KEY, $stations, $ttl);
-		}
-	}
-
-	$callback->(_withBackdrop($stations, $wallpaperUrl));
-}
-
 # Parse the server-rendered accordion markup on filtermusic.net's homepage.
 # The site (an Astro static build) emits one <details> block per genre
 # category, each containing <article data-title=... data-listen=... ...>
 # entries with the direct stream URL already inlined, so no per-station
 # page fetch is required.
-sub _parseStations {
-	my ($content) = @_;
+sub _parseMenu {
+	my ($content, $wallpaperUrl) = @_;
 
 	my @menu;
 
@@ -231,24 +215,15 @@ sub _parseStations {
 		push @menu, {
 			name  => $category,
 			items => \@stations,
+			# Only used by skins that render a per-node backdrop from a menu
+			# item's own icon (e.g. Material Skin, when its "Draw background"
+			# setting is on). Every other client already ignores unknown
+			# fields on a menu node, same as the per-station 'icon' above.
+			(defined $wallpaperUrl ? (image => $wallpaperUrl) : ()),
 		};
 	}
 
 	return \@menu;
-}
-
-# Attach the current visit's wallpaper photo to each category node without
-# mutating the (possibly cached) station list itself. Only used by skins
-# that render a per-node backdrop from a menu item's own icon (e.g. Material
-# Skin, when its "Draw background" setting is on) - every other client
-# already ignores unknown fields on a menu node, same as the per-station
-# 'icon' set in _parseStations.
-sub _withBackdrop {
-	my ($menu, $wallpaperUrl) = @_;
-
-	return $menu unless defined $wallpaperUrl;
-
-	return [ map { { %$_, image => $wallpaperUrl } } @$menu ];
 }
 
 # filtermusic.net renders a random full-page wallpaper photo (with a credit

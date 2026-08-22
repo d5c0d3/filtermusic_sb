@@ -13,14 +13,10 @@ my $prefs = preferences('plugin.filtermusic');
 
 sub name   { 'PLUGIN_FILTERMUSIC' }
 sub page   { 'plugins/FilterMusic/settings/basic.html' }
-sub prefs  { return ($prefs, qw(cacheTTLMinutes showBackdrop)); }
+sub prefs  { return ($prefs, qw(showBackdrop)); }
 
 sub handler {
 	my ($class, $client, $params) = @_;
-
-	if ($params->{'saveSettings'} && $params->{'clearcache'}) {
-		Plugins::FilterMusic::Plugin::clearCache();
-	}
 
 	# SUPER::handler() (Slim::Web::Settings) saves every name from prefs()
 	# unconditionally from $params->{'pref_<name>'} - including when that key

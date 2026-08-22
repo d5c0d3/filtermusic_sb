@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.3.0 (2026-08-22)
+
+- **Removed the persistent station-list cache entirely.** Since 1.2.0 every visit to the FilterMusic
+  menu already does a live fetch (for the background photo), which meant the actual expensive part -
+  the network round-trip - was already happening on every visit; caching the parsed station list
+  separately only saved a trivial amount of local regex work while adding real complexity (two
+  independent data lifetimes, a cache-duration setting, a shallow-copy step to avoid mutating cached
+  data). Now everything - stations and photo - is parsed together, fresh, on every visit, the same way
+  loading filtermusic.net in a browser loads everything in one shot. Dropped the `Slim::Utils::Cache`
+  dependency, the `Cache Duration` setting, and the `Clear Cache Now` button along with it.
+- The fetch-failure fallback (added in 1.2.0) is simpler too: instead of a TTL'd cache entry, it's now
+  just the last successful in-memory result, used only if a fetch ever fails.
+
 ## 1.2.0 (2026-08-22)
 
 - **The background photo now refreshes on every visit to the FilterMusic menu**, not just every

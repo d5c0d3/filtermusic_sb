@@ -28,15 +28,16 @@ list directly out of the page markup (there is no public API). Each `<article da
 element on the page already carries the direct stream URL, station name, description and artwork, so
 a single request builds the whole menu.
 
-Every visit to the FilterMusic menu does a live fetch (see "Background photo" below for why), but the
-station list itself is only re-parsed when its own cache (`Slim::Utils::Cache`, default 6 hours,
-configurable in the plugin's Settings page) has expired - a cache hit just reuses the previously
-parsed list. Browsing *within* FilterMusic (into a category, a station) never calls back into the
-plugin at all, since the whole subtree is already in the response for the top-level menu.
+There's no persistent cache: every visit to the FilterMusic menu fetches and parses filtermusic.net
+fresh, the same way loading the site in a browser loads everything - stations and the background photo
+alike - in one shot. Browsing *within* FilterMusic (into a category, a station) never calls back into
+the plugin at all, since the whole subtree is already in the response for the top-level menu - that's
+the LMS equivalent of navigating a page that's already loaded, not a fresh visit. The only state kept
+in memory is the last successful result, used purely as a fallback if a fetch ever fails.
 
 Because this depends on filtermusic.net's current HTML structure, a redesign of that site can break
 parsing. If browsing FilterMusic in LMS starts showing an empty menu or a "could not read the station
-list" error, check `FilterMusic/Plugin.pm`'s `_parseStations` against the site's current markup first.
+list" error, check `FilterMusic/Plugin.pm`'s `_parseMenu` against the site's current markup first.
 
 ### Background photo (Material Skin)
 

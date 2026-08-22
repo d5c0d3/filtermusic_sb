@@ -19,12 +19,6 @@ SETUP_PLUGIN_FILTERMUSIC_MENU_DESC
 SETUP_PLUGIN_FILTERMUSIC_EDIT_MENU
 	EN	Add FilterMusic to Favorites
 
-SETUP_PLUGIN_FILTERMUSIC_CACHETTL
-	EN	Cache Duration
-
-SETUP_PLUGIN_FILTERMUSIC_CACHETTL_DESC
-	EN	How long (in minutes) the station list itself is kept before being re-read from filtermusic.net. FilterMusic is still checked every time you enter its menu regardless of this setting, to pick up a fresh background photo; this only controls how long the (much larger, slower-changing) list of stations is reused rather than re-read.
-
 SETUP_PLUGIN_FILTERMUSIC_BACKDROP
 	EN	Background Photo (Material Skin)
 
@@ -33,12 +27,3 @@ SETUP_PLUGIN_FILTERMUSIC_BACKDROP_DESC
 
 SETUP_PLUGIN_FILTERMUSIC_BACKDROP_CURRENT
 	EN	Current photo:
-
-SETUP_PLUGIN_FILTERMUSIC_CLEARCACHE
-	EN	Station List Cache
-
-SETUP_PLUGIN_FILTERMUSIC_CLEARCACHE_DESC
-	EN	Force a refresh of the cached station list on next browse.
-
-SETUP_PLUGIN_FILTERMUSIC_CLEARCACHE_BUTTON
-	EN	Clear Cache Now

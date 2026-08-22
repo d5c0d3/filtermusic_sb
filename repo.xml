@@ -4,15 +4,15 @@
 		<title lang="EN">d5c0d3 plug-in repository</title>
 	</details>
 	<plugins>
-		<plugin name="FilterMusic" version="1.2.0" minTarget="8.0" maxTarget="9.*">
+		<plugin name="FilterMusic" version="1.3.0" minTarget="8.0" maxTarget="9.*">
 			<title lang="EN">FilterMusic</title>
 			<desc lang="EN">Browse internet radio stations curated on FilterMusic.net, organized by genre.</desc>
 			<creator>d5c0d3</creator>
 			<email>d5c0d3@gmail.com</email>
 			<category>radio</category>
-			<url>https://d5c0d3.github.io/filtermusic_sb/FilterMusic_1_2_0.zip</url>
+			<url>https://d5c0d3.github.io/filtermusic_sb/FilterMusic_1_3_0.zip</url>
 			<link>https://d5c0d3.github.io/filtermusic_sb</link>
-			<sha>281be678962632945e85ccb95af89ab641ee750d</sha>
+			<sha>11dfa5be34cee1894f835f9c2b0a2a90f8473e7a</sha>
 		</plugin>
     </plugins>
 </extensions>
