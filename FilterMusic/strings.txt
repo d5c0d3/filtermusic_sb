@@ -1,0 +1,35 @@
+PLUGIN_FILTERMUSIC
+	EN	FilterMusic
+
+PLUGIN_FILTERMUSIC_DESC
+	EN	Browse internet radio stations curated on FilterMusic.net, organized by genre.
+
+PLUGIN_FILTERMUSIC_FETCH_ERROR
+	EN	Could not reach filtermusic.net. Please try again later.
+
+PLUGIN_FILTERMUSIC_PARSE_ERROR
+	EN	Could not read the station list from filtermusic.net. The site may have changed.
+
+SETUP_PLUGIN_FILTERMUSIC_MENU
+	EN	FilterMusic Menu
+
+SETUP_PLUGIN_FILTERMUSIC_MENU_DESC
+	EN	Add FilterMusic as a shortcut in your Favorites menu.
+
+SETUP_PLUGIN_FILTERMUSIC_EDIT_MENU
+	EN	Add FilterMusic to Favorites
+
+SETUP_PLUGIN_FILTERMUSIC_CACHETTL
+	EN	Cache Duration
+
+SETUP_PLUGIN_FILTERMUSIC_CACHETTL_DESC
+	EN	How long (in minutes) the station list is cached before FilterMusic.net is checked again.
+
+SETUP_PLUGIN_FILTERMUSIC_CLEARCACHE
+	EN	Station List Cache
+
+SETUP_PLUGIN_FILTERMUSIC_CLEARCACHE_DESC
+	EN	Force a refresh of the cached station list on next browse.
+
+SETUP_PLUGIN_FILTERMUSIC_CLEARCACHE_BUTTON
+	EN	Clear Cache Now

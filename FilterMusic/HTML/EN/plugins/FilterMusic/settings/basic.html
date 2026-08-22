@@ -1,0 +1,31 @@
+[% PROCESS settings/header.html %]
+
+	<div class="settingSection">
+
+		<div class="prefHead">[% "PLUGIN_FILTERMUSIC" | string | upper %]</div>
+		<div class="prefDesc">[% "PLUGIN_FILTERMUSIC_DESC" | string %]</div>
+
+		<div class="prefHead">[% "SETUP_PLUGIN_FILTERMUSIC_MENU" | string | upper %]</div>
+		<div class="prefDesc">[% "SETUP_PLUGIN_FILTERMUSIC_MENU_DESC" | string %]</div>
+
+		<a href="[% webroot %]plugins/Favorites/index.html?new=[% opmlfile %]&autosave">[% "SETUP_PLUGIN_FILTERMUSIC_EDIT_MENU" | string %]</a>
+
+		<form method="post" action="[% webroot %]plugins/FilterMusic/settings/basic.html">
+
+			<div class="prefHead">[% "SETUP_PLUGIN_FILTERMUSIC_CACHETTL" | string | upper %]</div>
+			<div class="prefDesc">[% "SETUP_PLUGIN_FILTERMUSIC_CACHETTL_DESC" | string %]</div>
+			<input type="text" name="cacheTTLMinutes" value="[% prefs.pref('cacheTTLMinutes') %]" size="5">
+
+			<div class="prefHead">[% "SETUP_PLUGIN_FILTERMUSIC_CLEARCACHE" | string | upper %]</div>
+			<div class="prefDesc">[% "SETUP_PLUGIN_FILTERMUSIC_CLEARCACHE_DESC" | string %]</div>
+			<button type="submit" name="clearcache" value="1">[% "SETUP_PLUGIN_FILTERMUSIC_CLEARCACHE_BUTTON" | string %]</button>
+
+			<p>
+				<input type="submit" name="saveSettings" value="[% "SETUP_SAVE" | string %]">
+			</p>
+
+		</form>
+
+	</div>
+
+[% PROCESS settings/footer.html %]
