@@ -1,111 +1,32 @@
 # Changelog
 
-## 1.5.0 (2026-08-23)
+## 2.0.0 (2026-08-23)
 
-- **Removed the Material Skin background photo feature entirely.** Two fixes in a row (1.3.5, 1.4.0)
-  addressed real bugs - a broken settings-template expression, then a stale scraping approach after
-  filtermusic.net moved wallpaper selection client-side - but the background still didn't show, and
-  with no way to verify a Material Skin client's rendering from here, it wasn't worth chasing further
-  for a feature that was always cosmetic. Removed `showBackdrop` and all wallpaper-fetching code, the
-  Settings page's background section, and the related strings; the settings page is now just the "Add
-  to Favorites" shortcut it was before 1.1.0.
+Consolidates a run of small releases (1.1.0–1.5.0) that turned out to be iteration on top of 1.0.0
+rather than real milestones, into a single entry.
 
-## 1.4.0 (2026-08-23)
-
-- **Fixed the Material Skin background never showing, for real this time.** filtermusic.net no longer
-  renders a wallpaper URL into its homepage HTML at all - the site now picks one client-side, in the
-  visitor's own browser, by fetching a separate `wallpapers.json` and choosing a random entry with
-  JavaScript (and auto-rotating on a timer from there). There's no server-rendered "current" wallpaper
-  left to scrape, which is why the previous regex-based `_parseWallpaper` silently found nothing every
-  time - not a bug in that regex, but a premise (a scrapeable current photo) that stopped being true.
-  The plugin now fetches that same `wallpapers.json` itself and picks a random entry the same way,
-  restoring the feature.
-
-## 1.3.5 (2026-08-23)
-
-- **Fixed the "Show backdrop" setting never actually taking effect.** The settings template checked
-  it with `prefs.pref('showBackdrop')`, a method-call syntax that isn't valid for the `prefs` object
-  `Slim::Web::Settings`'s base `handler` exposes to templates - every other LMS core and plugin
-  settings page instead reads it as a hash key, `prefs.pref_<name>`. The broken expression silently
-  evaluated to nothing, so the checkbox always rendered unchecked regardless of the actually-saved
-  preference, making it look like the setting could never be turned on (and, since it likely never
-  actually got set, the Material Skin backdrop never appeared either). Switched to `prefs.pref_showBackdrop`,
-  matching the convention used everywhere else in LMS.
-
-## 1.3.4 (2026-08-22)
-
-- Replaced the public contact email with a pointer to GitHub Issues throughout: removed `<email>`
-  from `repo.xml` and `install.xml` (confirmed optional against several real-world plugin
-  repositories, including `michaelherger/lms-plugin-tidal`), pointed `repo.xml`'s `<link>` and
-  `install.xml`'s `<homepageURL>` at `https://github.com/d5c0d3/filtermusic_sb/issues`, and updated
-  `Plugin.pm`'s header comment to match.
-
-## 1.3.3 (2026-08-22)
-
-- Switched attribution from a full legal name to the `d5c0d3` handle throughout (`LICENSE`,
-  `Plugin.pm`, `install.xml`) - a pseudonym is legally sufficient for copyright attribution, and
-  `repo.xml` already used it.
-
-## 1.3.2 (2026-08-22)
-
-- Added `LICENSE` (MIT), matching the two comparable community LMS plugins checked
-  (`lyr-radio-browser`, `lms-somafm`) and the spirit of the original 0.2 release's own "feel free to
-  use my script, just credit it" note. Covers this plugin's own code only - the station data, artwork,
-  and background photos it reads from filtermusic.net remain filtermusic.net's own content.
-- README now has a scannable `Features` summary and a `License` section.
-
-## 1.3.1 (2026-08-22)
-
-- **Fixed a silent-logging bug**: the fetch-failure path logged via `$log->warn(...)`, but the
-  plugin's log category defaults to level `ERROR`, and `WARN` sits below that threshold in
-  `Slim::Utils::Log`'s severity order (`DEBUG < INFO < WARN < ERROR < FATAL`). That meant "could not
-  reach filtermusic.net" (the site being down, a network issue, etc) produced no visible log line at
-  all under default settings, while a parse failure (broken markup) did. Both now log at `error`.
-
-## 1.3.0 (2026-08-22)
-
-- **Removed the persistent station-list cache entirely.** Since 1.2.0 every visit to the FilterMusic
-  menu already does a live fetch (for the background photo), which meant the actual expensive part -
-  the network round-trip - was already happening on every visit; caching the parsed station list
-  separately only saved a trivial amount of local regex work while adding real complexity (two
-  independent data lifetimes, a cache-duration setting, a shallow-copy step to avoid mutating cached
-  data). Now everything - stations and photo - is parsed together, fresh, on every visit, the same way
-  loading filtermusic.net in a browser loads everything in one shot. Dropped the `Slim::Utils::Cache`
-  dependency, the `Cache Duration` setting, and the `Clear Cache Now` button along with it.
-- The fetch-failure fallback (added in 1.2.0) is simpler too: instead of a TTL'd cache entry, it's now
-  just the last successful in-memory result, used only if a fetch ever fails.
-
-## 1.2.0 (2026-08-22)
-
-- **The background photo now refreshes on every visit to the FilterMusic menu**, not just every
-  ~6h. filtermusic.net only rolls its wallpaper on a full page reload, and a full reload is
-  effectively what happens each time the FilterMusic menu is (re-)entered, so entering FilterMusic
-  now always does a live fetch to pick up whatever photo the site is currently showing. Browsing
-  *within* FilterMusic (into a category, a station) never calls back into the plugin - the whole
-  subtree is already in that response - so the photo stays fixed for that visit and only changes
-  the next time the menu is entered.
-- The (much larger, slower-changing) 236-station list is unaffected by this: it's still only
-  re-parsed when its own cache (`Cache Duration` setting) has expired; a cache hit just gets the
-  freshly-fetched photo attached to it. Re-parsing and photo-refreshing are independent now.
-- Added a fallback: if the live fetch fails (network issue) but a cached station list exists, browse
-  still works (just without a fresh photo for that visit) instead of showing a hard error - since
-  visits now always attempt a fetch, a transient failure would otherwise be more visible than before.
-
-## 1.1.0 (2026-08-22)
-
-- **Added an optional Material Skin background photo.** filtermusic.net renders a random full-page
-  wallpaper photo (with a credit caption) on every homepage load; the plugin now piggybacks on the
-  station-list request it already makes to grab that same photo and applies it as the `image` on
-  each genre category. Skins that read a menu node's own icon as its browse backdrop (currently
-  Material Skin, when its own "Draw background" setting is on) will show it; every other client
-  ignores the extra field, the same as the per-station artwork already added in 1.0.0. It changes
-  whenever the station-list cache refreshes (default every 6h) rather than per-category, to avoid
-  adding extra requests to filtermusic.net beyond the one fetch the plugin already makes.
-- Added a `showBackdrop` setting (on by default) to turn this off, and the settings page now shows
-  the currently-applied photo's credit.
-- Fixed the settings page's form field names: `Slim::Web::Settings`'s base `handler` expects them
-  prefixed `pref_<name>` (e.g. `pref_cacheTTLMinutes`) to be saved at all — the 1.0.0 page saved
-  cache-duration changes under an unprefixed name, which the base handler never picked up.
+- **Tried, then removed, an optional Material Skin background photo.** Added in 1.1.0, refined over
+  1.2.0–1.3.0 (live per-visit refresh, then a simplified no-cache design), fixed twice more (a broken
+  settings-template expression, then a stale scrape after filtermusic.net moved wallpaper selection
+  client-side) - but the background never actually appeared in testing, and with no way to verify a
+  Material Skin client's rendering from outside it, it wasn't worth chasing further for a feature that
+  was always cosmetic. Removed entirely; the settings page is back to just the "Add to Favorites"
+  shortcut it always was otherwise.
+- **Removed the persistent station-list cache.** Once every visit was already doing a live fetch (for
+  the background photo, since removed), caching the parsed station list separately only saved a small
+  amount of local regex work while adding real complexity. Every visit now fetches and parses
+  filtermusic.net fresh; the only state kept in memory is the last successful result, used as a
+  fallback if a fetch ever fails.
+- **Fixed a silent-logging bug**: the fetch-failure path logged via `$log->warn(...)`, but the plugin's
+  log category defaults to level `ERROR`, and `WARN` sits below that threshold in `Slim::Utils::Log`'s
+  severity order (`DEBUG < INFO < WARN < ERROR < FATAL`) - so "could not reach filtermusic.net"
+  produced no visible log line at all under default settings.
+- **Added `LICENSE` (MIT)**, matching comparable community LMS plugins (`lyr-radio-browser`,
+  `lms-somafm`) and the spirit of the original 0.2 release's own "feel free to use my script, just
+  credit it" note.
+- **Switched attribution to the `d5c0d3` handle** throughout (a pseudonym is legally sufficient for
+  copyright attribution) and **pointed contact info at GitHub Issues** instead of a public email
+  address.
 
 ## 1.0.0 (2026-08-22)
 

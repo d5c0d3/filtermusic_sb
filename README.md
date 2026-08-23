@@ -66,9 +66,10 @@ The original 0.2 release (2011) scraped an older, jQuery-accordion version of th
 (see [Logitech/slimserver#594](https://github.com/Logitech/slimserver/issues/594)). Version 1.0.0 was a
 full rewrite: no `HTML::TreeBuilder` dependency, updated target versions
 (`LogitechMediaServer` 8.0–9.*), a working Settings page, and parsing rebuilt against the current
-filtermusic.net markup. Later 1.x releases briefly added (and then removed, after it turned out
-unworkable in practice) an optional Material Skin background photo, and simplified the caching approach
-down to what's described above. See `CHANGELOG.md` for the full version-by-version detail.
+filtermusic.net markup. Version 2.0.0 consolidates a run of small follow-up releases that briefly added
+(and then removed, after it turned out unworkable in practice) an optional Material Skin background
+photo, and simplified the caching approach down to what's described above. See `CHANGELOG.md` for the
+full detail.
 
 ## License
 
