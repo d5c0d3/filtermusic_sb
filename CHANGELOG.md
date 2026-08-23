@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.3.5 (2026-08-23)
+
+- **Fixed the "Show backdrop" setting never actually taking effect.** The settings template checked
+  it with `prefs.pref('showBackdrop')`, a method-call syntax that isn't valid for the `prefs` object
+  `Slim::Web::Settings`'s base `handler` exposes to templates - every other LMS core and plugin
+  settings page instead reads it as a hash key, `prefs.pref_<name>`. The broken expression silently
+  evaluated to nothing, so the checkbox always rendered unchecked regardless of the actually-saved
+  preference, making it look like the setting could never be turned on (and, since it likely never
+  actually got set, the Material Skin backdrop never appeared either). Switched to `prefs.pref_showBackdrop`,
+  matching the convention used everywhere else in LMS.
+
 ## 1.3.4 (2026-08-22)
 
 - Replaced the public contact email with a pointer to GitHub Issues throughout: removed `<email>`

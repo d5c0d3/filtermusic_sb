@@ -14,7 +14,7 @@
 
 			<div class="prefHead">[% "SETUP_PLUGIN_FILTERMUSIC_BACKDROP" | string | upper %]</div>
 			<div class="prefDesc">[% "SETUP_PLUGIN_FILTERMUSIC_BACKDROP_DESC" | string %]</div>
-			<input type="checkbox" name="pref_showBackdrop" value="1" [% IF prefs.pref('showBackdrop') %]checked[% END %]>
+			<input type="checkbox" name="pref_showBackdrop" value="1" [% IF prefs.pref_showBackdrop %]checked[% END %]>
 			[% IF filtermusic_wallpaper_credit %]
 				<div class="prefDesc">[% "SETUP_PLUGIN_FILTERMUSIC_BACKDROP_CURRENT" | string %] &laquo;[% filtermusic_wallpaper_credit %]&raquo;</div>
 			[% END %]
