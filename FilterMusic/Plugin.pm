@@ -3,7 +3,7 @@ package Plugins::FilterMusic::Plugin;
 #########################################################################
 # Plugin: FilterMusic                                                   #
 #                                                                       #
-# Version: 2.0.0                                                       #
+# Version: 2.1.0                                                       #
 #                                                                       #
 # Website: https://filtermusic.net                                     #
 #                                                                       #
@@ -96,12 +96,16 @@ sub initPlugin {
 	Plugins::FilterMusic::Settings->new;
 
 	# this creates a new menu in the radios menu tree
+	# icon filename ends in "_svg.png" so Material Skin substitutes the
+	# sibling fm.svg and recolours it per-theme; other skins/clients just
+	# use the PNG directly
 	$class->SUPER::initPlugin(
 		feed   => \&toplevel,
 		tag    => 'filtermusic',
 		menu   => 'radios',
 		is_app => 0,
 		weight => 10,
+		icon   => 'plugins/FilterMusic/html/images/fm_svg.png',
 	);
 }
 
