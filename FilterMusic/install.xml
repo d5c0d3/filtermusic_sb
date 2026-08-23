@@ -3,13 +3,13 @@
 <extension>
 	<name>FilterMusic</name>
 	<module>Plugins::FilterMusic::Plugin</module>
-	<version>2.1.0</version>
+	<version>2.1.1</version>
 	<description>PLUGIN_FILTERMUSIC_DESC</description>
 	<creator>d5c0d3</creator>
 	<category>radio</category>
 	<defaultState>enabled</defaultState>
 	<homepageURL>https://github.com/d5c0d3/filtermusic_sb/issues</homepageURL>
-	<icon>plugins/FilterMusic/html/images/fm.png</icon>
+	<icon>plugins/FilterMusic/html/images/fm_svg.png</icon>
 	<optionsURL>plugins/FilterMusic/settings/basic.html</optionsURL>
 	<targetApplication>
 		<id>LogitechMediaServer</id>
