@@ -16,11 +16,6 @@ GitHub Pages serves at <https://d5c0d3.github.io/filtermusic_sb/repo.xml>.
 - **Direct playback** - each station plays straight from the stream URL filtermusic.net already lists;
   no extra per-station page fetch.
 - **Station artwork** for every entry.
-- **Optional background photo for Material Skin** - shows filtermusic.net's own current wallpaper
-  photo behind the category list. A new photo is picked each time you enter the FilterMusic menu and
-  stays fixed until you leave and come back, same as filtermusic.net's own reload-driven behavior.
-  Toggle it, and see the current photo's credit, from the plugin's Settings page. No effect on other
-  skins, apps, or physical players.
 - **Add to Favorites** shortcut from the Settings page, for pinning FilterMusic to your Favorites menu.
 - **Resilient to filtermusic.net being down or changing**: if a visit's fetch fails, or the site's
   markup changes enough to break parsing, the plugin falls back to the last successful load instead of
@@ -53,25 +48,15 @@ element on the page already carries the direct stream URL, station name, descrip
 a single request builds the whole menu.
 
 There's no persistent cache: every visit to the FilterMusic menu fetches and parses filtermusic.net
-fresh, the same way loading the site in a browser loads everything - stations and the background photo
-alike - in one shot. Browsing *within* FilterMusic (into a category, a station) never calls back into
-the plugin at all, since the whole subtree is already in the response for the top-level menu - that's
-the LMS equivalent of navigating a page that's already loaded, not a fresh visit. The only state kept
-in memory is the last successful result, used purely as a fallback if a fetch ever fails.
+fresh, the same way loading the site in a browser loads everything fresh each time. Browsing *within*
+FilterMusic (into a category, a station) never calls back into the plugin at all, since the whole
+subtree is already in the response for the top-level menu - that's the LMS equivalent of navigating a
+page that's already loaded, not a fresh visit. The only state kept in memory is the last successful
+result, used purely as a fallback if a fetch ever fails.
 
 Because this depends on filtermusic.net's current HTML structure, a redesign of that site can break
 parsing. If browsing FilterMusic in LMS starts showing an empty menu or a "could not read the station
 list" error, check `FilterMusic/Plugin.pm`'s `_parseMenu` against the site's current markup first.
-
-### Background photo (Material Skin)
-
-filtermusic.net shows a random full-page wallpaper photo (with a credit caption) on every page load.
-The plugin reads that same photo off the homepage fetch it already makes and attaches it as the
-`image` on every category node. Skins that use a menu node's own icon as a browse backdrop - currently
-Material Skin, when its own "Draw background" Interface setting is on - show it; every other client
-ignores the extra field. A new photo is picked each time the FilterMusic menu is entered and stays
-fixed until you leave and come back, mirroring how filtermusic.net itself only rolls the photo on a
-fresh page load. Toggle with the "Background Photo (Material Skin)" setting.
 
 ## History
 
@@ -81,11 +66,11 @@ The original 0.2 release (2011) scraped an older, jQuery-accordion version of th
 (see [Logitech/slimserver#594](https://github.com/Logitech/slimserver/issues/594)). Version 1.0.0 was a
 full rewrite: no `HTML::TreeBuilder` dependency, updated target versions
 (`LogitechMediaServer` 8.0–9.*), a working Settings page, and parsing rebuilt against the current
-filtermusic.net markup. Later 1.x releases added the background photo and simplified the caching
-approach down to what's described above. See `CHANGELOG.md` for the full version-by-version detail.
+filtermusic.net markup. Later 1.x releases briefly added (and then removed, after it turned out
+unworkable in practice) an optional Material Skin background photo, and simplified the caching approach
+down to what's described above. See `CHANGELOG.md` for the full version-by-version detail.
 
 ## License
 
-MIT - see `LICENSE`. That covers this plugin's own code; the station data, artwork, and background
-photos it reads from filtermusic.net remain filtermusic.net's own content, not licensed by this
-project.
+MIT - see `LICENSE`. That covers this plugin's own code; the station data and artwork it reads from
+filtermusic.net remain filtermusic.net's own content, not licensed by this project.

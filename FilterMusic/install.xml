@@ -3,7 +3,7 @@
 <extension>
 	<name>FilterMusic</name>
 	<module>Plugins::FilterMusic::Plugin</module>
-	<version>1.4.0</version>
+	<version>1.5.0</version>
 	<description>PLUGIN_FILTERMUSIC_DESC</description>
 	<creator>d5c0d3</creator>
 	<category>radio</category>

@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.5.0 (2026-08-23)
+
+- **Removed the Material Skin background photo feature entirely.** Two fixes in a row (1.3.5, 1.4.0)
+  addressed real bugs - a broken settings-template expression, then a stale scraping approach after
+  filtermusic.net moved wallpaper selection client-side - but the background still didn't show, and
+  with no way to verify a Material Skin client's rendering from here, it wasn't worth chasing further
+  for a feature that was always cosmetic. Removed `showBackdrop` and all wallpaper-fetching code, the
+  Settings page's background section, and the related strings; the settings page is now just the "Add
+  to Favorites" shortcut it was before 1.1.0.
+
 ## 1.4.0 (2026-08-23)
 
 - **Fixed the Material Skin background never showing, for real this time.** filtermusic.net no longer

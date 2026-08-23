@@ -18,12 +18,3 @@ SETUP_PLUGIN_FILTERMUSIC_MENU_DESC
 
 SETUP_PLUGIN_FILTERMUSIC_EDIT_MENU
 	EN	Add FilterMusic to Favorites
-
-SETUP_PLUGIN_FILTERMUSIC_BACKDROP
-	EN	Background Photo (Material Skin)
-
-SETUP_PLUGIN_FILTERMUSIC_BACKDROP_DESC
-	EN	Show filtermusic.net's current wallpaper photo as the background when browsing FilterMusic categories in Material Skin. A new photo is picked each time you enter the FilterMusic menu, same as a full page reload on filtermusic.net itself, and stays fixed until you leave and come back. Requires "Draw background" to also be enabled in Material Skin's own Interface settings. Has no effect on other skins, apps, or players.
-
-SETUP_PLUGIN_FILTERMUSIC_BACKDROP_CURRENT
-	EN	Current photo:
