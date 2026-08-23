@@ -1,5 +1,22 @@
 # Changelog
 
+## 2.1.1 (2026-08-23)
+
+Fixes 2.1.0: the `icon` key it added to the `initPlugin` call did nothing.
+`Slim::Plugin::OPMLBased::initPlugin` never reads an `icon` argument - it only ever calls
+`$class->_pluginDataFor('icon')`, which is sourced from `install.xml`'s `<icon>` tag and feeds the
+Jive window `icon-id`, the CLI `radios` query, and the legacy `icon` field alike (verified directly
+against `Slim::Plugin::OPMLBased.pm` and `Slim::Plugin::Base.pm`).
+
+- **Removed** the dead `icon` argument from `initPlugin` in `Plugin.pm`.
+- **Pointed `install.xml`'s `<icon>` at `fm_svg.png`** instead of the old `fm.png` - this is the
+  actual, single source of truth for the top-level menu icon (and also still drives the plugin's
+  listing icon in the extension browser, so the two are now unified rather than split as 2.1.0
+  claimed).
+- Confirmed `proxiedImage()` (which wraps `_pluginDataFor('icon')` before use) passes local
+  relative paths through unchanged - it only rewrites `http(s)://` URLs - so the `_svg.png` → `.svg`
+  filename convention Material Skin relies on still applies.
+
 ## 2.1.0 (2026-08-23)
 
 Closes [#1](https://github.com/d5c0d3/filtermusic_sb/issues/1): the FilterMusic top-level menu node
