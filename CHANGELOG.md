@@ -1,5 +1,24 @@
 # Changelog
 
+## 2.1.0 (2026-08-23)
+
+Closes [#1](https://github.com/d5c0d3/filtermusic_sb/issues/1): the FilterMusic top-level menu node
+now has an icon.
+
+- **Set the top-level menu `icon`** in `initPlugin` to
+  `plugins/FilterMusic/html/images/fm_svg.png` (previously unset, so players/skins fell back to a
+  generic radio icon).
+- **Added a Material Skin variant.** Material recolours any SVG icon whose fill/stroke is `#000` to
+  match the active theme, and swaps in a same-named `.svg` file for any icon path ending `_svg.png`
+  (confirmed by reading Material's own `icon-mapping.js` and comparing against its bundled icons,
+  e.g. `genre.svg`: `viewBox="0 0 24 24"`, single `fill="#000"` path, no `width`/`height`). Added
+  `fm.svg` alongside `fm_svg.png` - a 24x24, `#000`-fill/stroke SVG built from the same "fm" mark -
+  so Material Skin renders and themes it automatically across its light/dark/coloured colour
+  schemes, while every other skin/client just uses the `fm_svg.png` raster fallback.
+- The raster fallback (`fm_svg.png`) uses the newer dark "fm" badge design rather than the older
+  light `fm.png` badge still used for the plugin's install-listing icon in `install.xml` - the two
+  aren't currently unified.
+
 ## 2.0.0 (2026-08-23)
 
 Consolidates a run of small releases (1.1.0–1.5.0) that turned out to be iteration on top of 1.0.0
