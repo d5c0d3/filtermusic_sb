@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.4.0 (2026-08-23)
+
+- **Fixed the Material Skin background never showing, for real this time.** filtermusic.net no longer
+  renders a wallpaper URL into its homepage HTML at all - the site now picks one client-side, in the
+  visitor's own browser, by fetching a separate `wallpapers.json` and choosing a random entry with
+  JavaScript (and auto-rotating on a timer from there). There's no server-rendered "current" wallpaper
+  left to scrape, which is why the previous regex-based `_parseWallpaper` silently found nothing every
+  time - not a bug in that regex, but a premise (a scrapeable current photo) that stopped being true.
+  The plugin now fetches that same `wallpapers.json` itself and picks a random entry the same way,
+  restoring the feature.
+
 ## 1.3.5 (2026-08-23)
 
 - **Fixed the "Show backdrop" setting never actually taking effect.** The settings template checked

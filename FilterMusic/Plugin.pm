@@ -3,7 +3,7 @@ package Plugins::FilterMusic::Plugin;
 #########################################################################
 # Plugin: FilterMusic                                                   #
 #                                                                       #
-# Version: 1.3.5                                                       #
+# Version: 1.4.0                                                       #
 #                                                                       #
 # Website: https://filtermusic.net                                     #
 #                                                                       #
@@ -32,13 +32,16 @@ package Plugins::FilterMusic::Plugin;
 #    has no risky third-party module dependency.                      #
 #  - There's no persistent cache: every visit to the FilterMusic menu  #
 #    fetches and parses filtermusic.net fresh, the same way visiting   #
-#    the site itself in a browser loads everything - stations and the  #
-#    background photo alike - in one shot. Browsing *within*           #
-#    FilterMusic (into a category, a station) never calls back into    #
-#    the plugin, since the whole subtree is already in that response,  #
-#    which is the LMS equivalent of navigating a page that's already   #
-#    loaded. The only state kept in memory is the last successful      #
-#    result, used purely as a fallback if a fetch ever fails.          #
+#    the site itself in a browser loads everything fresh each time.    #
+#    Browsing *within* FilterMusic (into a category, a station) never  #
+#    calls back into the plugin, since the whole subtree is already in #
+#    that response, which is the LMS equivalent of navigating a page   #
+#    that's already loaded. The only state kept in memory is the last  #
+#    successful result, used purely as a fallback if a fetch fails.    #
+#  - The background photo isn't in the homepage HTML at all - the site #
+#    picks it client-side (JavaScript, from wallpapers.json) with no   #
+#    server-rendered "current" value to scrape. We fetch that same     #
+#    JSON list and pick a random entry ourselves instead.              #
 #########################################################################
 
 use strict;
@@ -46,6 +49,7 @@ use warnings;
 
 use base qw(Slim::Plugin::OPMLBased);
 
+use JSON::XS::VersionOneAndTwo;
 use Slim::Networking::SimpleAsyncHTTP;
 use Slim::Utils::Log;
 use Slim::Utils::Prefs;
@@ -53,8 +57,10 @@ use Slim::Utils::Strings qw(cstring);
 
 use Plugins::FilterMusic::Settings;
 
-use constant FEED_URL   => 'https://filtermusic.net/';
-use constant USER_AGENT => 'FilterMusic-LMS-Plugin/1.0 (+https://github.com/d5c0d3/filtermusic_sb)';
+use constant FEED_URL           => 'https://filtermusic.net/';
+use constant WALLPAPER_JSON_URL => 'https://filtermusic.net/wallpapers.json';
+use constant WALLPAPER_BASE_URL => 'https://filtermusic.github.io/wallpaper/';
+use constant USER_AGENT         => 'FilterMusic-LMS-Plugin/1.0 (+https://github.com/d5c0d3/filtermusic_sb)';
 
 my $log = Slim::Utils::Log->addLogCategory({
 	'category'     => 'plugin.filtermusic',
@@ -126,33 +132,11 @@ sub toplevel {
 			my $http = shift;
 			my $content = $http->content;
 
-			my $wallpaperUrl;
 			if ($prefs->get('showBackdrop')) {
-				my ($url, $credit) = _parseWallpaper($content);
-				$wallpaperUrl = $url;
-				$lastWallpaperCredit = $credit if $url;
+				_fetchWallpaper($client, $callback, $content);
+			} else {
+				_buildMenu($client, $callback, $content, undef);
 			}
-
-			my $menu = eval { _parseMenu($content, $wallpaperUrl) };
-
-			if ($@ || !$menu || !scalar @$menu) {
-				$log->error('failed to parse filtermusic.net: ' . ($@ || 'no categories found'));
-
-				if ($lastGoodMenu) {
-					$log->debug('serving last known good FilterMusic menu after a parse failure');
-					$callback->($lastGoodMenu);
-					return;
-				}
-
-				$callback->([{
-					name => cstring($client, 'PLUGIN_FILTERMUSIC_PARSE_ERROR'),
-					type => 'text',
-				}]);
-				return;
-			}
-
-			$lastGoodMenu = $menu;
-			$callback->($menu);
 		},
 
 		# fetch failure - fall back to the last successful result rather than
@@ -179,6 +163,80 @@ sub toplevel {
 
 		{ timeout => 15 },
 	)->get(FEED_URL, 'User-Agent' => USER_AGENT);
+}
+
+# filtermusic.net's own homepage no longer renders a wallpaper URL into its
+# HTML at all - the site instead fetches this same wallpapers.json client-side
+# and picks a random entry with JavaScript, on every visitor's own browser,
+# auto-rotating on a timer. There's no server-side "current" wallpaper to
+# scrape, so we fetch this list ourselves and pick a random entry the same
+# way, rather than trying to read a value that was never server-rendered.
+sub _fetchWallpaper {
+	my ($client, $callback, $content) = @_;
+
+	Slim::Networking::SimpleAsyncHTTP->new(
+		sub {
+			my $http = shift;
+
+			my $wallpapers = eval { from_json($http->content) };
+
+			if ($@ || ref $wallpapers ne 'ARRAY' || !@$wallpapers) {
+				$log->error('failed to parse wallpapers.json: ' . ($@ || 'unexpected format'));
+				_buildMenu($client, $callback, $content, undef);
+				return;
+			}
+
+			my $pick = $wallpapers->[int(rand(scalar @$wallpapers))];
+			my $wallpaperUrl;
+
+			if ($pick->{field_wallpaper}) {
+				$wallpaperUrl = WALLPAPER_BASE_URL . $pick->{field_wallpaper};
+
+				my $credit = $pick->{body} ? $pick->{body} : ($pick->{title} || '');
+				$credit =~ s/<[^>]+>//g;
+				$credit =~ s/\s+/ /g;
+				$credit =~ s/^\s+|\s+$//g;
+				$lastWallpaperCredit = _decodeEntities($credit);
+			}
+
+			_buildMenu($client, $callback, $content, $wallpaperUrl);
+		},
+
+		# fetch failure here just means no photo for this visit - the station
+		# list itself doesn't depend on it
+		sub {
+			my ($http, $error) = @_;
+			$log->error("error fetching filtermusic.net wallpapers.json: $error");
+			_buildMenu($client, $callback, $content, undef);
+		},
+
+		{ timeout => 15 },
+	)->get(WALLPAPER_JSON_URL, 'User-Agent' => USER_AGENT);
+}
+
+sub _buildMenu {
+	my ($client, $callback, $content, $wallpaperUrl) = @_;
+
+	my $menu = eval { _parseMenu($content, $wallpaperUrl) };
+
+	if ($@ || !$menu || !scalar @$menu) {
+		$log->error('failed to parse filtermusic.net: ' . ($@ || 'no categories found'));
+
+		if ($lastGoodMenu) {
+			$log->debug('serving last known good FilterMusic menu after a parse failure');
+			$callback->($lastGoodMenu);
+			return;
+		}
+
+		$callback->([{
+			name => cstring($client, 'PLUGIN_FILTERMUSIC_PARSE_ERROR'),
+			type => 'text',
+		}]);
+		return;
+	}
+
+	$lastGoodMenu = $menu;
+	$callback->($menu);
 }
 
 # Parse the server-rendered accordion markup on filtermusic.net's homepage.
@@ -232,22 +290,6 @@ sub _parseMenu {
 	}
 
 	return \@menu;
-}
-
-# filtermusic.net renders a random full-page wallpaper photo (with a credit
-# caption) on every homepage load - see the <aside id="wallpaper"> markup.
-# We piggyback on the same request used for the station list rather than
-# fetching a separate wallpaper feed, so this doesn't add any extra load on
-# their server.
-sub _parseWallpaper {
-	my ($content) = @_;
-
-	my ($url) = $content =~ m{class="wallpaper_container[^"]*"[^>]*style="[^"]*url\((?:&quot;|")([^&"]+)(?:&quot;|")\)}s;
-	my ($credit) = $content =~ m{id="wallpaper_credits"[^>]*>([^<]*)<};
-
-	return (undef, undef) unless $url;
-
-	return (_decodeEntities($url), _decodeEntities($credit || ''));
 }
 
 1;
