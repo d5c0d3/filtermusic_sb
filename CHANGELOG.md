@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.1.2 (2026-08-24)
+
+Actually ships the `fm.svg` glyph scaling fix from `85c1c39` ("Scale fm.svg glyph to reduce whitespace
+in 24x24 viewBox"), which was merged into the source tree but never released: `repo.xml` was still
+pointing at `FilterMusic_2_1_1.zip`, built before that fix, so every real install has been getting the
+old, small-in-its-viewBox icon regardless of which version was shown as installed. No source changes in
+this release - just rebuilding and shipping `FilterMusic_2_1_2.zip` from the current tree, and updating
+`repo.xml` to point at it, so the already-committed fix actually reaches installs.
+
 ## 2.1.1 (2026-08-23)
 
 Fixes 2.1.0: the `icon` key it added to the `initPlugin` call did nothing.

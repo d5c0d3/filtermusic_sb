@@ -3,7 +3,7 @@ package Plugins::FilterMusic::Plugin;
 #########################################################################
 # Plugin: FilterMusic                                                   #
 #                                                                       #
-# Version: 2.1.1                                                       #
+# Version: 2.1.2                                                       #
 #                                                                       #
 # Website: https://filtermusic.net                                     #
 #                                                                       #
