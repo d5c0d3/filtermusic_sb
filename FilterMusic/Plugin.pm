@@ -221,12 +221,22 @@ sub _buildMenu {
 			next unless ref $station eq 'HASH';
 			next unless length $station->{name} && length $station->{stream};
 
+			my $desc = $station->{description};
+			my $name = (defined $desc && length $desc) ? "$station->{name} - $desc" : $station->{name};
+			my $logo = $station->{logo} || undef;
+
 			push @stations, {
-				name        => $station->{name},
+				name        => $name,
 				type        => 'audio',
 				url         => $station->{stream},
-				icon        => $station->{logo} || undef,
-				description => $station->{description} || undef,
+				# both keys point at the same logo: 'icon' drives the menu-list
+				# and Jive icon, while 'image' is what XMLBrowser's Now Playing
+				# artwork caching (Slim::Control::XMLBrowser, Slim::Web::XMLBrowser)
+				# actually reads - it falls back to 'cover'/'icon' in some paths
+				# but not the one that seeds a stream's now-playing artwork cache
+				icon        => $logo,
+				image       => $logo,
+				description => (defined $desc && length $desc) ? $desc : undef,
 			};
 		}
 

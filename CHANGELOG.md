@@ -16,10 +16,26 @@ plugin onto it, replacing the homepage-scraping approach from the 2026 rewrite.
   before the next visit refetches, cutting down on repeat requests from browsing in and back out of the
   menu. Past that window, if the feed's `generated` timestamp comes back unchanged - i.e. filtermusic.net
   hasn't redeployed - the previously-built menu is reused rather than rebuilt from the same data.
-- **Stations now carry a separate `description`** (used by LMS for the station's detail/info view)
-  instead of being crammed into `name` as `"$title - $desc"`, since the feed exposes them as distinct
-  fields already stripped of markup - the feed also exposes `homepage` and `playlist` per station,
-  unused by the plugin for now.
+- **Stations carry a separate `description`** (used by LMS for the station's detail/info view), since
+  the feed exposes it as its own field already stripped of markup - the feed also exposes `homepage`
+  and `playlist` per station, unused by the plugin for now. The station's displayed `name` still folds
+  the description in as `"$title - $desc"`, matching the browse-menu and now-playing title format the
+  2.1.x scraping releases used - an earlier draft of this migration dropped that formatting and showed
+  just the bare title, which was a regression from 2.1.x.
+- **Fixed station logos missing from the Now Playing screen on JSON-RPC-driven clients** (the default
+  web UI, Material Skin, the app - anything that talks to LMS via `Slim::Control::XMLBrowser` rather
+  than the classic server-rendered web skin). Each station now sets both `icon` and `image` to its
+  `logo` URL: `icon` is what the browse-menu list and Jive icon read, but the code path that actually
+  seeds a playing stream's Now Playing artwork cache (`Slim::Control::XMLBrowser`'s and
+  `Slim::Web::XMLBrowser`'s "keep track of station icons" `remote_image_` caching, confirmed by reading
+  `Slim::Control::XMLBrowser.pm` and `Slim::Web::XMLBrowser.pm` directly) only ever reads `image` or
+  `cover`, never falling back to `icon` - so a station with `icon` set but no `image` played back with
+  no artwork on those clients, even though the classic web skin's separate `play`-action code path
+  (which *does* fall back to `icon`) made it look fine there.
+- **The classic web skin still won't show station artwork while browsing** (as opposed to Now Playing,
+  which is fixed above) - confirmed against `HTML/EN/xmlbrowser.html`: its gallery/thumbnail rendering
+  is gated on `item.type == 'text'`, and radio stations are necessarily `type => 'audio'` so they can be
+  played. That's a limitation of the skin template itself, not something fixable from plugin data.
 - Bumped the plugin's `User-Agent` string to `2.0` to distinguish feed requests from the old
   markup-scraping version's traffic on filtermusic.net's side.
 
