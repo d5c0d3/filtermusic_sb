@@ -1,0 +1,15 @@
+[% PROCESS settings/header.html %]
+
+	<div class="settingSection">
+
+		<div class="prefHead">[% "PLUGIN_FILTERMUSICDEV" | string | upper %]</div>
+		<div class="prefDesc">[% "PLUGIN_FILTERMUSICDEV_DESC" | string %]</div>
+
+		<div class="prefHead">[% "SETUP_PLUGIN_FILTERMUSICDEV_MENU" | string | upper %]</div>
+		<div class="prefDesc">[% "SETUP_PLUGIN_FILTERMUSICDEV_MENU_DESC" | string %]</div>
+
+		<a href="[% webroot %]plugins/Favorites/index.html?new=[% opmlfile %]&autosave">[% "SETUP_PLUGIN_FILTERMUSICDEV_EDIT_MENU" | string %]</a>
+
+	</div>
+
+[% PROCESS settings/footer.html %]

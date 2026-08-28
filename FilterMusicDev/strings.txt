@@ -1,0 +1,20 @@
+PLUGIN_FILTERMUSICDEV
+	EN	FilterMusic (Dev)
+
+PLUGIN_FILTERMUSICDEV_DESC
+	EN	Dev/test build of the FilterMusic plugin - not for real use. Browse internet radio stations curated on FilterMusic.net, organized by genre.
+
+PLUGIN_FILTERMUSICDEV_FETCH_ERROR
+	EN	Could not reach filtermusic.net. Please try again later.
+
+PLUGIN_FILTERMUSICDEV_PARSE_ERROR
+	EN	Could not read the station list from filtermusic.net. The site may have changed.
+
+SETUP_PLUGIN_FILTERMUSICDEV_MENU
+	EN	FilterMusic (Dev) Menu
+
+SETUP_PLUGIN_FILTERMUSICDEV_MENU_DESC
+	EN	Add FilterMusic (Dev) as a shortcut in your Favorites menu.
+
+SETUP_PLUGIN_FILTERMUSICDEV_EDIT_MENU
+	EN	Add FilterMusic (Dev) to Favorites

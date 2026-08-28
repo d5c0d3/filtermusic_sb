@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<extensions>
+	<details>
+		<title lang="EN">d5c0d3 plug-in repository (dev)</title>
+	</details>
+	<plugins>
+		<plugin name="FilterMusicDev" version="2.2.0.1" minTarget="8.0" maxTarget="9.*">
+			<title lang="EN">FilterMusic (Dev)</title>
+			<desc lang="EN">Dev/test build of the FilterMusic plugin - not for real use.</desc>
+			<creator>d5c0d3</creator>
+			<category>radio</category>
+			<url>https://raw.githubusercontent.com/d5c0d3/filtermusic_sb/claude/filtermusic-integration-ihfnwu/FilterMusicDev_2_2_0_1.zip</url>
+			<link>https://github.com/d5c0d3/filtermusic_sb/issues</link>
+			<sha>6566097debe7092d536a613a24b990783f3007f1</sha>
+		</plugin>
+    </plugins>
+</extensions>
