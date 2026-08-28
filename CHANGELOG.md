@@ -33,20 +33,29 @@ plugin onto it, replacing the homepage-scraping approach from the 2026 rewrite.
   no artwork on those clients, even though the classic web skin's separate `play`-action code path
   (which *does* fall back to `icon`) made it look fine there.
 - **Known issue, not fixed here: filtermusic.net's `logo` URLs are WebP, and LMS can't display WebP
-  artwork on its own.** Confirmed by reading `Slim::Utils::GDResizer.pm` (LMS's artwork resizer, built
-  on `Image::Scale`, which has no WebP decoder) and `Slim::Web::ImageProxy.pm`, which special-cases any
-  `.webp` artwork URL (or one whose response Content-Type is `image/webp`) by redirecting it through an
-  external conversion service, `https://api.lms-community.org/img/compatible/<url>`, before it's used -
-  including for the standard `/music/current/cover.jpg` path players use for Now Playing art (traced
-  through `Slim::Web::Graphics.pm`). Whether that conversion actually happens for a given install
-  depends on the server's LMS/Lyrion version including that code and having outbound access to
-  `api.lms-community.org` - neither of which the plugin can affect. The real fix is upstream: getting
+  artwork on its own - anywhere, not just Now Playing.** Confirmed by reading `Slim::Utils::GDResizer.pm`
+  (LMS's artwork resizer, built on `Image::Scale`, which has no WebP decoder) and
+  `Slim::Web::ImageProxy.pm`, which special-cases any `.webp` artwork URL (or one whose response
+  Content-Type is `image/webp`) by redirecting it through an external conversion service,
+  `https://api.lms-community.org/img/compatible/<url>`, before it's used. That one `proxiedImage()`/
+  `/imageproxy/` pipeline (`Slim::Web::ImageProxy.pm`) is shared by *every* artwork path: Now Playing's
+  `/music/current/cover.jpg` (traced through `Slim::Web::Graphics.pm`) and the **Default** web skin's
+  browse-list thumbnails alike (`HTML/Default/xmlbrowser.html`'s `resizeimage` filter calls the same
+  `proxiedImage()`) - so this is one root cause, not two. Whether the conversion actually succeeds for a
+  given install depends on the server's LMS/Lyrion version including that code and having outbound
+  access to `api.lms-community.org` - neither of which the plugin can affect. Other radio plugins whose
+  logos are plain PNG/JPEG never hit this at all, in either place. The real fix is upstream: getting
   filtermusic.net to also serve a PNG/JPEG variant of each station logo, rather than routing artwork
   through a third-party conversion proxy from the plugin itself.
-- **The classic web skin still won't show station artwork while browsing** (as opposed to Now Playing,
-  which is fixed above) - confirmed against `HTML/EN/xmlbrowser.html`: its gallery/thumbnail rendering
-  is gated on `item.type == 'text'`, and radio stations are necessarily `type => 'audio'` so they can be
-  played. That's a limitation of the skin template itself, not something fixable from plugin data.
+- **Correction to an earlier claim in this same entry:** browse-list station artwork is *not*
+  structurally impossible for `type => 'audio'` items, as previously stated here - that was checked
+  against the wrong template. LMS's literally-named **"Classic"** skin has no `xmlbrowser.html` of its
+  own and falls back to the bare legacy template (`HTML/EN/xmlbrowser.html`, confirmed via
+  `Slim::Web::Template::SkinManager.pm` and `HTML/Classic/skinconfig.yml`'s missing `skinparents`),
+  which really is gated to `item.type == 'text'` and can't show it, format notwithstanding. But
+  **"Default"** - the skin almost everyone actually uses - has its own `xmlbrowser.html` that does
+  render artwork for remote (`http`, non-`file`) `type => 'audio'` items via `item.image`/`item.icon`,
+  through the same WebP-limited pipeline described above.
 - Bumped the plugin's `User-Agent` string to `2.0` to distinguish feed requests from the old
   markup-scraping version's traffic on filtermusic.net's side.
 
