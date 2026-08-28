@@ -102,6 +102,18 @@ Because this depends on the feed's current shape, a breaking change to it can br
 browsing FilterMusic in LMS starts showing an empty menu or a "could not read the station list" error,
 check `FilterMusic/Plugin.pm`'s `_decodeFeed`/`_buildMenu` against the feed's current shape first.
 
+## Known issues
+
+**Station logos may not appear on Now Playing.** The feed's `logo` URLs are WebP. LMS's own artwork
+resizer (`Image::Scale`, via `Slim::Utils::GDResizer.pm`) can't decode WebP at all - LMS instead
+special-cases `.webp` artwork by routing it through an external conversion service
+(`Slim::Web::ImageProxy.pm`, redirecting to `https://api.lms-community.org/img/compatible/<url>`)
+before it's ever displayed, including for the standard `/music/current/cover.jpg` path players use for
+Now Playing art. Whether that works depends on the server's LMS/Lyrion version including that code and
+having outbound access to `api.lms-community.org` - this plugin has no way to affect either. This isn't
+fixed on the plugin side; the fix needs to happen upstream, at filtermusic.net, by also serving a
+PNG/JPEG variant of each station logo.
+
 ## History
 
 The original 0.2 release (2011) scraped an older, jQuery-accordion version of the site using
