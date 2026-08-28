@@ -15,16 +15,17 @@ GitHub Pages serves at <https://d5c0d3.github.io/filtermusic_sb/repo.xml>.
   International/Ethnic).
 - **Direct playback** - each station plays straight from the stream URL filtermusic.net already lists;
   no extra per-station page fetch.
-- **Station artwork** for every entry.
+- **Station artwork and descriptions** for every entry, read straight from filtermusic.net's own feed.
 - **Add to Favorites** shortcut from the Settings page, for pinning FilterMusic to your Favorites menu.
-- **Resilient to filtermusic.net being down or changing**: if a visit's fetch fails, or the site's
-  markup changes enough to break parsing, the plugin falls back to the last successful load instead of
+- **Resilient to filtermusic.net being down or changing**: if a visit's fetch fails, or the feed's
+  format changes enough to break parsing, the plugin falls back to the last successful load instead of
   showing an empty menu or hard error - see "How it works" below.
-- **No persistent cache** - every visit is a fresh read of filtermusic.net, so what you see always
-  matches the current site (aside from the fallback case above).
+- **Lightly cached** - a successful load is kept in memory for a few minutes, so browsing in and back
+  out of the FilterMusic menu repeatedly doesn't refetch every time, while still staying close to what
+  filtermusic.net currently lists. See "How it works" below.
 - **No risky dependencies** - the original 0.2 release depended on a module LMS doesn't fully bundle
-  and failed to load on any current server; this rewrite only uses LMS's own bundled Perl. See
-  "History" below.
+  and failed to load on any current server; this rewrite only uses LMS's own bundled Perl (including
+  its bundled JSON support). See "History" below.
 
 ## Installing
 
@@ -77,21 +78,29 @@ FilterMusic install is never touched by any of this.
 
 ## How it works
 
-`FilterMusic/Plugin.pm` fetches `https://filtermusic.net/` and parses the server-rendered station
-list directly out of the page markup (there is no public API). Each `<article data-listen="...">`
-element on the page already carries the direct stream URL, station name, description and artwork, so
-a single request builds the whole menu.
+`FilterMusic/Plugin.pm` fetches `https://filtermusic.net/stations.json`, a feed maintained by
+filtermusic.net specifically for this plugin and regenerated on every site deploy, and decodes it
+directly - there's no HTML to parse and no public API beyond this one feed. Each station in the feed
+already carries its direct stream URL, name, description and artwork, so a single request builds the
+whole menu:
 
-There's no persistent cache: every visit to the FilterMusic menu fetches and parses filtermusic.net
-fresh, the same way loading the site in a browser loads everything fresh each time. Browsing *within*
-FilterMusic (into a category, a station) never calls back into the plugin at all, since the whole
-subtree is already in the response for the top-level menu - that's the LMS equivalent of navigating a
-page that's already loaded, not a fresh visit. The only state kept in memory is the last successful
-result, used purely as a fallback if a fetch ever fails.
+```
+{ generated, genres: [ { name, page, stations: [
+    { name, description, page, homepage, stream, playlist, logo } ] } ] }
+```
 
-Because this depends on filtermusic.net's current HTML structure, a redesign of that site can break
-parsing. If browsing FilterMusic in LMS starts showing an empty menu or a "could not read the station
-list" error, check `FilterMusic/Plugin.pm`'s `_parseMenu` against the site's current markup first.
+A successful fetch is cached in memory for a few minutes (`CACHE_TTL` in `Plugin.pm`), so repeatedly
+browsing in and back out of the FilterMusic menu doesn't refetch every time. Once that window passes,
+the feed is fetched again, but if its `generated` timestamp hasn't moved since the last fetch - i.e.
+filtermusic.net hasn't redeployed - the menu already built from it is reused rather than rebuilt from
+the same data. Browsing *within* FilterMusic (into a genre, a station) never calls back into the plugin
+at all, since the whole subtree is already in the response for the top-level menu. The only state kept
+beyond the cache window is the last successful result, used as a fallback if a fetch or parse ever
+fails.
+
+Because this depends on the feed's current shape, a breaking change to it can break parsing. If
+browsing FilterMusic in LMS starts showing an empty menu or a "could not read the station list" error,
+check `FilterMusic/Plugin.pm`'s `_decodeFeed`/`_buildMenu` against the feed's current shape first.
 
 ## History
 
@@ -103,7 +112,9 @@ full rewrite: no `HTML::TreeBuilder` dependency, updated target versions
 (`LogitechMediaServer` 8.0–9.*), a working Settings page, and parsing rebuilt against the current
 filtermusic.net markup. Version 2.0.0 consolidates a run of small follow-up releases that briefly added
 (and then removed, after it turned out unworkable in practice) an optional Material Skin background
-photo, and simplified the caching approach down to what's described above. See `CHANGELOG.md` for the
+photo, and simplified the caching approach down to a fresh fetch on every visit. Version 2.2.0 moved
+off homepage-markup scraping entirely onto a `stations.json` feed filtermusic.net now publishes for
+this plugin, and added the lightweight in-memory cache described above. See `CHANGELOG.md` for the
 full detail.
 
 ## License

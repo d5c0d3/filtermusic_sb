@@ -1,5 +1,28 @@
 # Changelog
 
+## 2.2.0 (2026-08-28)
+
+filtermusic.net's author added a JSON feed specifically for this plugin at
+`https://filtermusic.net/stations.json`, regenerated on every site deploy - this release moves the
+plugin onto it, replacing the homepage-scraping approach from the 2026 rewrite.
+
+- **Replaced HTML scraping with the JSON feed.** `_parseMenu` and `_decodeEntities` (the two-pass
+  regex parser and hand-rolled entity decoder needed to pull station data out of filtermusic.net's
+  server-rendered markup) are gone, replaced by `_decodeFeed`/`_buildMenu`, which just decode the feed
+  with `JSON::XS::VersionOneAndTwo` (bundled with LMS, same no-risky-dependency approach as before) and
+  walk its `genres`/`stations` arrays. Nothing here depends on filtermusic.net's markup any more, so a
+  CSS/markup change on that site can no longer break parsing.
+- **Added a short in-memory cache.** A successful fetch is now reused for `CACHE_TTL` (5 minutes)
+  before the next visit refetches, cutting down on repeat requests from browsing in and back out of the
+  menu. Past that window, if the feed's `generated` timestamp comes back unchanged - i.e. filtermusic.net
+  hasn't redeployed - the previously-built menu is reused rather than rebuilt from the same data.
+- **Stations now carry a separate `description`** (used by LMS for the station's detail/info view)
+  instead of being crammed into `name` as `"$title - $desc"`, since the feed exposes them as distinct
+  fields already stripped of markup - the feed also exposes `homepage` and `playlist` per station,
+  unused by the plugin for now.
+- Bumped the plugin's `User-Agent` string to `2.0` to distinguish feed requests from the old
+  markup-scraping version's traffic on filtermusic.net's side.
+
 ## 2.1.2 (2026-08-24)
 
 Actually ships the `fm.svg` glyph scaling fix from `85c1c39` ("Scale fm.svg glyph to reduce whitespace
