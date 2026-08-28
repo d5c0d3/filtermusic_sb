@@ -117,6 +117,13 @@ off homepage-markup scraping entirely onto a `stations.json` feed filtermusic.ne
 this plugin, and added the lightweight in-memory cache described above. See `CHANGELOG.md` for the
 full detail.
 
+## Credits
+
+FilterMusic.net is created and curated by Spyros. Every station, genre, and image this plugin
+displays is their work, not this project's. When I contacted them about reviving the plugin, they
+offered immediately to help and built a data feed for it, so it no longer needs to scrape the
+website. Thank you, Spyros.
+
 ## License
 
 MIT - see `LICENSE`. That covers this plugin's own code; the station data and artwork it reads from
