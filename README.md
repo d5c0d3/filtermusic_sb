@@ -104,22 +104,19 @@ check `FilterMusic/Plugin.pm`'s `_decodeFeed`/`_buildMenu` against the feed's cu
 
 ## Known issues
 
-**Station logos may not appear, on Now Playing or while browsing.** The feed's `logo` URLs are WebP.
-LMS's own artwork resizer (`Image::Scale`, via `Slim::Utils::GDResizer.pm`) can't decode WebP at all -
-LMS instead special-cases `.webp` artwork by routing it through an external conversion service
-(`Slim::Web::ImageProxy.pm`, redirecting to `https://api.lms-community.org/img/compatible/<url>`)
-before it's ever displayed. That's one shared pipeline (`proxiedImage()`/`/imageproxy/`) behind *every*
-artwork path in LMS - Now Playing's `/music/current/cover.jpg`, and the **Default** web skin's
-browse-list thumbnails alike (its `xmlbrowser.html` renders artwork for remote `type => 'audio'` items
-via `item.image`/`item.icon`, through the same `resizeimage` → `proxiedImage()` call) - so it's one root
-cause showing up in two places, not two separate bugs. (The literally-named **"Classic"** skin is a
-separate case: it has no `xmlbrowser.html` of its own and falls back to LMS's bare legacy template,
-which never shows artwork for `type => 'audio'` items regardless of format - that's a real, structural
-skin limitation, distinct from the WebP issue.) Whether the WebP conversion works depends on the
-server's LMS/Lyrion version including that code and having outbound access to `api.lms-community.org` -
-this plugin has no way to affect either. Other radio plugins whose logos are plain PNG/JPEG never hit
-this. This isn't fixed on the plugin side; the fix needs to happen upstream, at filtermusic.net, by also
-serving a PNG/JPEG variant of each station logo.
+**Station logos need LMS 9.1.0 or newer.** The feed's `logo` URLs are WebP. LMS's own artwork resizer
+(`Image::Scale`) can't decode WebP at all - `Slim::Web::ImageProxy.pm` instead redirects `.webp`
+artwork through an external conversion service (`https://api.lms-community.org/img/compatible/<url>`)
+before displaying it, and that entire mechanism was only added to LMS between the `9.0.3` and `9.1.1`
+releases (diffed directly against LMS-Community/slimserver's tagged source). On `9.0.3` or older, a
+WebP logo just fails to resize - logged as `Artwork resize for imageproxy/.../logo.webp/... failed` -
+everywhere LMS itself renders artwork: Now Playing (`/music/current/cover.jpg`) and the **Default** web
+skin's browse-list thumbnails alike, since both go through the same `proxiedImage()`/`/imageproxy/`
+pipeline. **Upgrade the LMS/Lyrion server to 9.1.0+ and it resolves itself, with no plugin or
+filtermusic.net change needed** - confirmed by comparing a `9.0.3` install (broken) against a `9.1.1`
+install (working) side by side. (The literally-named **"Classic"** skin is a separate, real limitation
+regardless of LMS version or image format: it has no `xmlbrowser.html` of its own and falls back to
+LMS's bare legacy template, which never shows artwork for `type => 'audio'` items at all.)
 
 ## History
 

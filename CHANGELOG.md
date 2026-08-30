@@ -32,30 +32,24 @@ plugin onto it, replacing the homepage-scraping approach from the 2026 rewrite.
   `cover`, never falling back to `icon` - so a station with `icon` set but no `image` played back with
   no artwork on those clients, even though the classic web skin's separate `play`-action code path
   (which *does* fall back to `icon`) made it look fine there.
-- **Known issue, not fixed here: filtermusic.net's `logo` URLs are WebP, and LMS can't display WebP
-  artwork on its own - anywhere, not just Now Playing.** Confirmed by reading `Slim::Utils::GDResizer.pm`
-  (LMS's artwork resizer, built on `Image::Scale`, which has no WebP decoder) and
-  `Slim::Web::ImageProxy.pm`, which special-cases any `.webp` artwork URL (or one whose response
-  Content-Type is `image/webp`) by redirecting it through an external conversion service,
-  `https://api.lms-community.org/img/compatible/<url>`, before it's used. That one `proxiedImage()`/
-  `/imageproxy/` pipeline (`Slim::Web::ImageProxy.pm`) is shared by *every* artwork path: Now Playing's
-  `/music/current/cover.jpg` (traced through `Slim::Web::Graphics.pm`) and the **Default** web skin's
-  browse-list thumbnails alike (`HTML/Default/xmlbrowser.html`'s `resizeimage` filter calls the same
-  `proxiedImage()`) - so this is one root cause, not two. Whether the conversion actually succeeds for a
-  given install depends on the server's LMS/Lyrion version including that code and having outbound
-  access to `api.lms-community.org` - neither of which the plugin can affect. Other radio plugins whose
-  logos are plain PNG/JPEG never hit this at all, in either place. The real fix is upstream: getting
-  filtermusic.net to also serve a PNG/JPEG variant of each station logo, rather than routing artwork
-  through a third-party conversion proxy from the plugin itself.
-- **Correction to an earlier claim in this same entry:** browse-list station artwork is *not*
-  structurally impossible for `type => 'audio'` items, as previously stated here - that was checked
-  against the wrong template. LMS's literally-named **"Classic"** skin has no `xmlbrowser.html` of its
-  own and falls back to the bare legacy template (`HTML/EN/xmlbrowser.html`, confirmed via
-  `Slim::Web::Template::SkinManager.pm` and `HTML/Classic/skinconfig.yml`'s missing `skinparents`),
-  which really is gated to `item.type == 'text'` and can't show it, format notwithstanding. But
-  **"Default"** - the skin almost everyone actually uses - has its own `xmlbrowser.html` that does
-  render artwork for remote (`http`, non-`file`) `type => 'audio'` items via `item.image`/`item.icon`,
-  through the same WebP-limited pipeline described above.
+- **filtermusic.net's `logo` URLs are WebP - this needs LMS 9.1.0 or newer, not a plugin or
+  filtermusic.net change.** LMS can't decode WebP with its own artwork resizer (`Image::Scale`, used by
+  `Slim::Utils::GDResizer.pm`); it instead redirects `.webp` artwork through an external conversion
+  service, `https://api.lms-community.org/img/compatible/<url>`, in `Slim::Web::ImageProxy.pm`. Diffing
+  that file between the `9.0.3` and `9.1.1` tags in LMS-Community/slimserver shows this entire mechanism
+  - the `.webp` detection, the conversion redirect, everything - was added between those two releases;
+  it does not exist at all in `9.0.3` or earlier. An install on `9.0.3` just logs
+  `Artwork resize for imageproxy/.../logo.webp/... failed` for every station and never shows the logo,
+  in Now Playing (`/music/current/cover.jpg`, traced through `Slim::Web::Graphics.pm`) and in the
+  **Default** web skin's browse-list thumbnails alike (`HTML/Default/xmlbrowser.html`'s `resizeimage`
+  filter calls the same `proxiedImage()`/`/imageproxy/` pipeline) - confirmed against a real install by
+  comparing a `9.0.3` QNAP Docker server (broken, matching log line above) against a `9.1.1` install
+  (working) side by side. Upgrading the `9.0.3` server to `9.1.0`+ fixes it completely, with no plugin
+  or filtermusic.net change needed. (The literally-named **"Classic"** skin is a separate, real
+  limitation regardless of LMS version or image format: it has no `xmlbrowser.html` of its own and
+  falls back to LMS's bare legacy template, `HTML/EN/xmlbrowser.html`, confirmed via
+  `Slim::Web::Template::SkinManager.pm` and `HTML/Classic/skinconfig.yml`'s missing `skinparents`,
+  which is gated to `item.type == 'text'` and never shows artwork for `type => 'audio'` items at all.)
 - Bumped the plugin's `User-Agent` string to `2.0` to distinguish feed requests from the old
   markup-scraping version's traffic on filtermusic.net's side.
 
