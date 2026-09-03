@@ -9,7 +9,7 @@ package Plugins::FilterMusicDev::Plugin;
 # branch (dev build)" section. Not for release - do not publish this   #
 # as the real FilterMusic plugin.                                      #
 #                                                                       #
-# Version: 2.3.0                                                       #
+# Version: 2.4.0                                                       #
 #                                                                       #
 # Website: https://filtermusic.net                                     #
 #                                                                       #
@@ -53,6 +53,14 @@ package Plugins::FilterMusicDev::Plugin;
 #    instead of an invisible, unverifiable backdrop. A failure to      #
 #    fetch or parse it never breaks station browsing, which doesn't    #
 #    depend on it - see _fetchArtwork.                                 #
+#  - Artwork items also carry a 'jive' block (see _buildArtworkItem)   #
+#    so Jive/app/JSON-RPC clients can show the image full-screen       #
+#    (reusing LMS's own 'artwork' CLI command, the same mechanism      #
+#    Slim::Menu::TrackInfo/AlbumInfo use) and offer a "more" screen    #
+#    with the credit and, when the entry's body links to one, a        #
+#    "Browse Original" link to the source - see _artworkInfo. The web  #
+#    skin already opens the image full-screen for free from a plain    #
+#    type=>'text' item with an image, with no code needed for that.    #
 #########################################################################
 
 use strict;
@@ -62,8 +70,11 @@ use base qw(Slim::Plugin::OPMLBased);
 
 use JSON::XS::VersionOneAndTwo;
 
+use Slim::Control::Request;
+use Slim::Control::XMLBrowser;
 use Slim::Networking::SimpleAsyncHTTP;
 use Slim::Utils::Log;
+use Slim::Utils::Misc;
 use Slim::Utils::Strings qw(cstring);
 
 use Plugins::FilterMusicDev::Settings;
@@ -73,6 +84,12 @@ use constant WALLPAPER_JSON_URL => 'https://filtermusic.net/wallpapers.json';
 use constant WALLPAPER_BASE_URL => 'https://filtermusic.github.io/wallpaper/';
 use constant USER_AGENT         => 'FilterMusicDev-LMS-Plugin/2.0 (+https://github.com/d5c0d3/filtermusic_sb)';
 use constant CACHE_TTL          => 300; # seconds
+
+# CLI command name for the artwork "more" info screen (_artworkInfo) - must
+# be globally unique across the whole LMS server, hence the plugin-specific
+# prefix; FilterMusic uses its own distinct name so both plugins can be
+# installed side by side without colliding.
+use constant ARTWORK_INFO_CMD => 'filtermusicdevartworkinfo';
 
 my $log = Slim::Utils::Log->addLogCategory({
 	'category'     => 'plugin.filtermusicdev',
@@ -142,6 +159,13 @@ sub initPlugin {
 		menu   => 'radios',
 		is_app => 0,
 		weight => 10,
+	);
+
+	# powers the "more" screen on Artwork items - see _artworkInfo and the
+	# 'jive' block built in _buildArtworkItem
+	Slim::Control::Request::addDispatch(
+		[ ARTWORK_INFO_CMD, 'items', '_index', '_quantity' ],
+		[ 0, 1, 1, \&_artworkInfo ],
 	);
 }
 
@@ -408,9 +432,17 @@ sub _buildArtworkMenu {
 }
 
 # Build a single Artwork menu item from one wallpapers.json entry's already
-# plain-string title/body (see _buildArtworkMenu).
+# plain-string title/body (see _buildArtworkMenu). Also pulls out a source
+# URL, if the raw body links to one, for the 'more' screen (_artworkInfo) to
+# offer as "Browse Original".
 sub _buildArtworkItem {
 	my ($title, $image, $body) = @_;
+
+	# body's raw markup, before stripping, is the only place a source link
+	# lives, e.g. body => '<p><a href="https://...">credit</a></p>' - most
+	# entries have no link at all, just plain-text credit
+	my ($sourceUrl) = $body =~ /<a\s[^>]*\bhref\s*=\s*"([^"]*)"/i;
+	$sourceUrl = _decodeEntities($sourceUrl) if defined $sourceUrl;
 
 	my $credit = length $body ? $body : $title;
 	$credit =~ s/<[^>]+>//g;
@@ -424,7 +456,67 @@ sub _buildArtworkItem {
 		icon        => $image,
 		image       => $image,
 		description => $credit,
+		# lets Jive/app/JSON-RPC clients show the image full-screen (the web
+		# skin already does this for free from a plain type=>'text' item
+		# with an image) and offer a "more" screen with the credit and,
+		# when $sourceUrl is set, a "Browse Original" link - see
+		# _artworkInfo, which decides what to show and whether the
+		# requesting client can actually follow a weblink at all
+		jive => {
+			actions => {
+				do   => { cmd => [ 'artwork', $image ] },
+				more => {
+					player => 0,
+					cmd    => [ ARTWORK_INFO_CMD, 'items' ],
+					params => { credit => $credit, source => (defined $sourceUrl ? $sourceUrl : '') },
+					window => { isContextMenu => 1 },
+				},
+			},
+			showBigArtwork => 1,
+		},
 	};
+}
+
+# Registered via addDispatch in initPlugin - the raw CLI/JSON-RPC command
+# handler for the artwork "more" screen. A dispatched command handler
+# receives a single $request object, not the ($client, $callback, $args)
+# signature OPML feed subs (like toplevel) use - this mirrors
+# Slim::Plugin::Podcast::Plugin's showInfo, which bridges the two the same
+# way via Slim::Control::XMLBrowser::cliQuery.
+sub _artworkInfo {
+	my $request = shift;
+	Slim::Control::XMLBrowser::cliQuery(ARTWORK_INFO_CMD, \&_artworkInfoFeed, $request);
+}
+
+# The "more" screen's actual content, invoked by _artworkInfo above via
+# cliQuery using the normal ($client, $callback, $args) feed-sub signature.
+# $args->{params} carries the credit/source text that was already known
+# when the item was built (see the 'jive' block in _buildArtworkItem), so
+# this never needs a network fetch of its own.
+sub _artworkInfoFeed {
+	my ($client, $callback, $args) = @_;
+	my $params = $args->{params} || {};
+
+	my @items;
+
+	push @items, { type => 'text', name => $params->{credit} } if length $params->{credit};
+
+	if (length $params->{source}) {
+		if (Slim::Utils::Misc::canFollowWeblinks($client)) {
+			push @items, {
+				type    => 'text',
+				name    => cstring($client, 'PLUGIN_FILTERMUSICDEV_ARTWORK_BROWSE_ORIGINAL'),
+				weblink => $params->{source},
+			};
+		} else {
+			# this client can't act on a weblink (e.g. real Squeezebox
+			# hardware talking SlimProto never sets controllerUA) - show the
+			# plain URL as text rather than a dead link
+			push @items, { type => 'text', name => $params->{source} };
+		}
+	}
+
+	$callback->(\@items);
 }
 
 sub _finalizeMenu {

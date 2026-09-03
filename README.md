@@ -17,7 +17,9 @@ GitHub Pages serves at <https://d5c0d3.github.io/filtermusic_sb/repo.xml>.
   no extra per-station page fetch.
 - **Station artwork and descriptions** for every entry, read straight from filtermusic.net's own feed.
 - **Browse artwork with artist credits** - a separate "Artwork" menu item lists the images featured on
-  filtermusic.net, each paired with its artist/photographer credit. See "How it works" below.
+  filtermusic.net, each paired with its artist/photographer credit. Selecting one shows it full-screen
+  (on clients that support it); its "more" screen offers a **Browse Original** link back to the source
+  page when the entry links to one. See "How it works" below.
 - **Add to Favorites** shortcut from the Settings page, for pinning FilterMusic to your Favorites menu.
 - **Resilient to filtermusic.net being down or changing**: if a visit's fetch fails, or the feed's
   format changes enough to break parsing, the plugin falls back to the last successful load instead of
@@ -124,6 +126,23 @@ redundant per-entry rebuild work. A failure to fetch or parse wallpapers.json fa
 known good Artwork node if one exists, the same "keep the last known good result" fallback the station
 menu uses; it never blocks or breaks station browsing either way.
 
+Each Artwork item also carries a `jive` block (`_buildArtworkItem`) giving Jive/app/JSON-RPC clients two
+actions the Default web skin already gets for free: selecting the item shows the image full-screen
+(`actions.do` targets LMS's own stock `artwork` command, plus `showBigArtwork => 1` - the same mechanism
+`Slim::Menu::TrackInfo`/`AlbumInfo` use for "Show Artwork"), and its "more" screen shows the credit plus,
+when the raw `body` contains a source `<a href="...">`, a **Browse Original** link to it. That "more"
+screen is powered by a small CLI command this plugin registers itself
+(`Slim::Control::Request::addDispatch` in `initPlugin`, `filtermusicartworkinfo` /
+`filtermusicdevartworkinfo` per plugin so the two don't collide when both are installed) - `_artworkInfo`
+bridges the dispatch's `$request`-based calling convention into a normal feed sub via
+`Slim::Control::XMLBrowser::cliQuery`, the same pattern `Slim::Plugin::Podcast::Plugin::showInfo` uses;
+`_artworkInfoFeed` builds the actual content. The **Browse Original** link is only offered when
+`Slim::Utils::Misc::canFollowWeblinks($client)` is true for whichever client requested that "more"
+screen - real Squeezebox hardware (talking SlimProto, not HTTP) never sets a `controllerUA` and so never
+gets a dead link; it sees the plain source URL as text instead. That check runs fresh every time "more"
+is pressed, not baked into the shared, cached top-level menu, since the same cached menu can otherwise
+be served to different clients within the `CACHE_TTL` window.
+
 Because this depends on the feed's current shape, a breaking change to it can break parsing. If
 browsing FilterMusic in LMS starts showing an empty menu or a "could not read the station list" error,
 check `FilterMusic/Plugin.pm`'s `_decodeFeed`/`_buildMenu` against the feed's current shape first.
@@ -144,6 +163,13 @@ install (working) side by side. (The literally-named **"Classic"** skin is a sep
 regardless of LMS version or image format: it has no `xmlbrowser.html` of its own and falls back to
 LMS's bare legacy template, which never shows artwork for `type => 'audio'` items at all.)
 
+**Full-screen Artwork view on Jive/hardware/app clients isn't independently verified.** The server-side
+contract for it (`showBigArtwork` plus LMS's own `artwork` CLI command, set in each Artwork item's
+`jive` block) is real, confirmed straight from `LMS-Community/slimserver`'s source - but how
+SqueezePlay/Jive firmware actually paints that screen, and how Material Skin's client-side JS handles it,
+aren't things this repository's source can confirm, since neither firmware nor Material Skin's own repo
+was checked. It's confirmed working in the Default web skin (opens the image full-size in a new tab).
+
 ## History
 
 The original 0.2 release (2011) scraped an older, jQuery-accordion version of the site using
@@ -158,8 +184,9 @@ photo, and simplified the caching approach down to a fresh fetch on every visit.
 off homepage-markup scraping entirely onto a `stations.json` feed filtermusic.net now publishes for
 this plugin, and added the lightweight in-memory cache described above. Version 2.3.0 revisited the
 Material Skin background photo's old `wallpapers.json` data source, this time surfacing it as a
-browsable Artwork menu item with artist credit rather than an invisible backdrop. See `CHANGELOG.md`
-for the full detail.
+browsable Artwork menu item with artist credit rather than an invisible backdrop. Version 2.4.0 made
+Artwork items interactive: full-screen viewing and a "Browse Original" link back to an entry's source,
+where its credit links to one. See `CHANGELOG.md` for the full detail.
 
 ## Credits
 

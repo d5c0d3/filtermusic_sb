@@ -1,5 +1,33 @@
 # Changelog
 
+## 2.4.0 (2026-09-03)
+
+Artwork items now do something when selected, instead of being a dead end: click one to see the image
+full-screen, or bring up its "more" screen for the credit and, when the entry's `body` links to one, a
+**Browse Original** link back to the source page. Verified against the real `LMS-Community/slimserver`
+source (`Slim::Menu::TrackInfo`/`AlbumInfo`, `Slim::Plugin::Podcast::Plugin`,
+`Slim::Utils::Misc::canFollowWeblinks`) rather than guessed.
+
+- **Full-screen image.** The Default web skin already opens a `type => 'text'` item's `image` full-size
+  in a new tab for free, with no code change needed. For Jive/app/JSON-RPC clients, each Artwork item's
+  new `jive` block (`_buildArtworkItem`) sets `actions.do` to LMS's own stock `artwork` CLI command
+  (confirmed URL-aware, not just DB-artwork-id-aware) plus `showBigArtwork => 1` - the same mechanism
+  `Slim::Menu::TrackInfo`/`AlbumInfo` use for "Show Artwork".
+- **"Browse Original" source link.** `_buildArtworkItem` now also pulls the first `<a href="...">` out
+  of the entry's raw (pre-stripped) `body`, if any - most entries have no link, just plain-text credit.
+  A new CLI command (`filtermusicartworkinfo`/`filtermusicdevartworkinfo`, registered via
+  `Slim::Control::Request::addDispatch` in `initPlugin`) powers the "more" screen: `_artworkInfo` bridges
+  the dispatch's `$request`-based calling convention into a normal OPML feed sub via
+  `Slim::Control::XMLBrowser::cliQuery`, mirroring `Slim::Plugin::Podcast::Plugin::showInfo`; the actual
+  content is built by `_artworkInfoFeed`.
+- **Hardware-aware.** The "Browse Original" `weblink` is only offered when
+  `Slim::Utils::Misc::canFollowWeblinks($client)` is true for the client requesting the "more" screen -
+  real Squeezebox hardware talking SlimProto never sets a `controllerUA` and so never gets a dead link;
+  it sees the plain source URL as text instead. This check runs inside `_artworkInfoFeed`, at the moment
+  "more" is pressed, not baked into the shared, cached top-level menu (`lastGoodMenu`/`CACHE_TTL`) -
+  baking a single client's capability into that shared cache would incorrectly apply it to every other
+  client browsing within the same cache window.
+
 ## 2.3.0 (2026-09-03)
 
 Adds a browsable **Artwork** menu item alongside the genre list, sourced from filtermusic.net's
