@@ -9,12 +9,21 @@ artwork is now shown directly: each entry appears as a browsable item pairing th
 artist/photographer credit (`body`, falling back to `title` when there's no separate credit - about a
 third of the live feed's entries have `body: false`).
 
-- **New `_fetchArtwork`/`_buildArtworkMenu`/`_decodeWallpapers`** in `Plugin.pm`, following `toplevel`'s
-  existing fetch-decode-build pattern. The wallpapers.json fetch happens after the station menu is
-  built, and a failure or parse error there is only ever logged - it never blocks or breaks station
-  browsing, which doesn't depend on it.
+- **New `_fetchArtwork`/`_buildArtworkMenu`/`_buildArtworkItem`/`_decodeWallpapers`** in `Plugin.pm`,
+  following `toplevel`'s existing fetch-decode-build pattern. The wallpapers.json fetch happens after
+  the station menu is built, and a failure or parse error there falls back to the last known good
+  Artwork node (if any) rather than blocking or breaking station browsing, which doesn't depend on it.
+- **Per-entry change detection**, since wallpapers.json - unlike `stations.json` - has no `generated`
+  timestamp to check as a whole. `%lastArtworkByKey` remembers each entry's title/credit text keyed by
+  its `field_wallpaper` filename (the closest thing this feed has to a stable id); an entry whose text
+  string-matches what was seen last fetch reuses the item already built for it instead of re-stripping
+  and re-decoding unchanged credit text. This only avoids redundant per-entry rebuild work - the fetch
+  itself still pulls the whole feed each time, since it's one flat array with no way to request only
+  the changed entries.
 - **Reintroduces `_decodeEntities`** (removed in 2.2.0 along with the old HTML-scraping parser) since
-  wallpapers.json's `body`/`title` credit text is HTML that can contain entities like `&nbsp;`.
+  wallpapers.json's `body`/`title` credit text is HTML that can contain entities like `&nbsp;`. Body is
+  also normalized to a plain string up front (it's a JSON boolean `false`, not a string, on entries
+  with no credit) so every later comparison/regex is a normal string op.
 - Caching is unchanged: the Artwork node is appended to the menu before it's cached, so it's covered by
   the same `CACHE_TTL` window as the rest of the menu, with no separate cache needed.
 

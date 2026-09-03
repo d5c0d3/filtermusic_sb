@@ -112,9 +112,17 @@ its artist/photographer credit:
 
 `field_wallpaper` is a filename appended to `https://filtermusic.github.io/wallpaper/` for the image
 URL; the credit shown is `body` (HTML, stripped and entity-decoded) when present, or `title` otherwise -
-`body` comes back as the JSON boolean `false`, not an empty string, on entries with no credit. A failure
-to fetch or parse wallpapers.json is only ever logged: it never blocks or breaks station browsing, and
-the menu is simply built without an Artwork node for that visit.
+`body` comes back as the JSON boolean `false`, not an empty string, on entries with no credit.
+
+Unlike `stations.json`, wallpapers.json has no `generated` timestamp to check as a whole, so
+`_buildArtworkMenu` detects change per entry instead: `%lastArtworkByKey` remembers each entry's
+title/credit text keyed by its `field_wallpaper` filename (the closest thing this feed has to a stable
+id), and an entry whose text is unchanged since the last fetch reuses the item already built for it
+rather than re-stripping/re-decoding the same text again. This doesn't shrink the fetch itself -
+wallpapers.json is one flat array with no way to request only the changed entries - it only avoids
+redundant per-entry rebuild work. A failure to fetch or parse wallpapers.json falls back to the last
+known good Artwork node if one exists, the same "keep the last known good result" fallback the station
+menu uses; it never blocks or breaks station browsing either way.
 
 Because this depends on the feed's current shape, a breaking change to it can break parsing. If
 browsing FilterMusic in LMS starts showing an empty menu or a "could not read the station list" error,

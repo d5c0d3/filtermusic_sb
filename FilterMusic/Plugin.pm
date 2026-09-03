@@ -78,6 +78,20 @@ my $lastGoodMenu;
 my $lastFetchTime  = 0;
 my $lastGenerated;
 
+# wallpapers.json has no 'generated' timestamp the way stations.json does,
+# so change detection happens per entry instead: %lastArtworkByKey remembers
+# each entry's title/credit text, keyed by its field_wallpaper filename (the
+# closest thing this feed has to a stable id), alongside the item we built
+# from it - see _buildArtworkMenu. An entry whose text is unchanged on the
+# next fetch reuses that item rather than re-stripping/re-decoding the same
+# credit text again. This doesn't shrink the fetch itself - wallpapers.json
+# is one flat array with no way to request only the changed entries - only
+# the per-entry rebuild work. $lastArtworkNode is the fallback shown if a
+# fetch or parse fails outright, the same "keep the last known good result"
+# approach used for $lastGoodMenu above.
+my %lastArtworkByKey;
+my $lastArtworkNode;
+
 # wallpapers.json's 'body'/'title' credit text is HTML, e.g. "Die Schlange
 # des B. by&nbsp;Nicola Napoli" - decode the handful of entities that
 # actually turn up in it rather than pulling in an HTML::Entities dependency
@@ -288,8 +302,9 @@ sub _buildMenu {
 # Fetch filtermusic.net's wallpapers.json feed and, if it decodes to a
 # non-empty array, append an "Artwork" node (built by _buildArtworkMenu) to
 # the already-built station $menu. Either way, _finalizeMenu is called at
-# the end - a fetch or parse failure here just means no Artwork node for
-# this visit, since station browsing doesn't depend on it.
+# the end - a fetch or parse failure here falls back to the last known good
+# Artwork node (if any) rather than dropping it, since station browsing
+# doesn't depend on it either way.
 sub _fetchArtwork {
 	my ($client, $callback, $menu, $generated) = @_;
 
@@ -301,9 +316,14 @@ sub _fetchArtwork {
 
 			if ($@ || !$wallpapers) {
 				$log->error('failed to parse wallpapers.json: ' . ($@ || 'malformed JSON'));
+				push @$menu, $lastArtworkNode if $lastArtworkNode;
 			} else {
 				my $artwork = _buildArtworkMenu($client, $wallpapers);
-				push @$menu, $artwork if $artwork;
+
+				if ($artwork) {
+					push @$menu, $artwork;
+					$lastArtworkNode = $artwork;
+				}
 			}
 
 			_finalizeMenu($callback, $menu, $generated);
@@ -312,6 +332,7 @@ sub _fetchArtwork {
 		sub {
 			my ($http, $error) = @_;
 			$log->error("error fetching filtermusic.net wallpapers.json: $error");
+			push @$menu, $lastArtworkNode if $lastArtworkNode;
 			_finalizeMenu($callback, $menu, $generated);
 		},
 
@@ -338,38 +359,65 @@ sub _decodeWallpapers {
 # mirroring _buildMenu's shape. Each item pairs an image with its
 # artist/photographer credit (falling back to the title when there's no
 # separate credit); entries without a field_wallpaper are skipped.
+#
+# Change detection is per entry, keyed by field_wallpaper against
+# %lastArtworkByKey (see its definition above): an entry whose title/body
+# text string-matches what we saw last fetch reuses the item already built
+# for it in _buildArtworkItem, instead of re-stripping/re-decoding text
+# that hasn't changed.
 sub _buildArtworkMenu {
 	my ($client, $wallpapers) = @_;
 
 	my @items;
+	my %newByKey;
 
 	for my $entry (@$wallpapers) {
 		next unless ref $entry eq 'HASH' && length $entry->{field_wallpaper};
 
-		my $title = $entry->{title} || $entry->{field_wallpaper};
-		my $image = WALLPAPER_BASE_URL . $entry->{field_wallpaper};
+		my $key   = $entry->{field_wallpaper};
+		my $title = defined $entry->{title} ? $entry->{title} : '';
+		# body is a JSON boolean false, not a string, when there's no
+		# credit - normalize to a plain string up front so every comparison
+		# and regex below is a normal string op, never an operation on a
+		# blessed JSON boolean value
+		my $body  = $entry->{body} ? "$entry->{body}" : '';
 
-		# body is a JSON boolean false, not a string, when there's no credit
-		my $credit = $entry->{body} ? $entry->{body} : ($entry->{title} || '');
-		$credit =~ s/<[^>]+>//g;
-		$credit =~ s/\s+/ /g;
-		$credit =~ s/^\s+|\s+$//g;
-		$credit = _decodeEntities($credit);
+		my $prev = $lastArtworkByKey{$key};
+		my $item = ($prev && $prev->{title} eq $title && $prev->{body} eq $body)
+			? $prev->{item}
+			: _buildArtworkItem($title || $key, WALLPAPER_BASE_URL . $key, $body);
 
-		push @items, {
-			name        => $title,
-			type        => 'text',
-			icon        => $image,
-			image       => $image,
-			description => $credit,
-		};
+		push @items, $item;
+		$newByKey{$key} = { title => $title, body => $body, item => $item };
 	}
+
+	%lastArtworkByKey = %newByKey;
 
 	return undef unless @items;
 
 	return {
 		name  => cstring($client, 'PLUGIN_FILTERMUSIC_ARTWORK'),
 		items => \@items,
+	};
+}
+
+# Build a single Artwork menu item from one wallpapers.json entry's already
+# plain-string title/body (see _buildArtworkMenu).
+sub _buildArtworkItem {
+	my ($title, $image, $body) = @_;
+
+	my $credit = length $body ? $body : $title;
+	$credit =~ s/<[^>]+>//g;
+	$credit =~ s/\s+/ /g;
+	$credit =~ s/^\s+|\s+$//g;
+	$credit = _decodeEntities($credit);
+
+	return {
+		name        => $title,
+		type        => 'text',
+		icon        => $image,
+		image       => $image,
+		description => $credit,
 	};
 }
 
