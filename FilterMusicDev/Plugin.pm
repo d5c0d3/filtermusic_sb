@@ -9,7 +9,7 @@ package Plugins::FilterMusicDev::Plugin;
 # branch (dev build)" section. Not for release - do not publish this   #
 # as the real FilterMusic plugin.                                      #
 #                                                                       #
-# Version: 2.2.0                                                       #
+# Version: 2.3.0                                                       #
 #                                                                       #
 # Website: https://filtermusic.net                                     #
 #                                                                       #
@@ -45,6 +45,14 @@ package Plugins::FilterMusicDev::Plugin;
 #    menu is reused rather than rebuilt from scratch. The only state   #
 #    kept beyond the TTL window is the last successful result, used as #
 #    a fallback if a fetch or parse ever fails.                        #
+#  - Artwork menu: an "Artwork" node is appended to the top-level menu #
+#    from filtermusic.net's wallpapers.json feed - the same feed the   #
+#    Material Skin background-photo feature (added 1.1.0, removed     #
+#    1.5.0 - see CHANGELOG.md) used, shown here directly as a          #
+#    browsable list of images with their artist/photographer credit   #
+#    instead of an invisible, unverifiable backdrop. A failure to      #
+#    fetch or parse it never breaks station browsing, which doesn't    #
+#    depend on it - see _fetchArtwork.                                 #
 #########################################################################
 
 use strict;
@@ -60,9 +68,11 @@ use Slim::Utils::Strings qw(cstring);
 
 use Plugins::FilterMusicDev::Settings;
 
-use constant FEED_URL   => 'https://filtermusic.net/stations.json';
-use constant USER_AGENT => 'FilterMusicDev-LMS-Plugin/2.0 (+https://github.com/d5c0d3/filtermusic_sb)';
-use constant CACHE_TTL  => 300; # seconds
+use constant FEED_URL           => 'https://filtermusic.net/stations.json';
+use constant WALLPAPER_JSON_URL => 'https://filtermusic.net/wallpapers.json';
+use constant WALLPAPER_BASE_URL => 'https://filtermusic.github.io/wallpaper/';
+use constant USER_AGENT         => 'FilterMusicDev-LMS-Plugin/2.0 (+https://github.com/d5c0d3/filtermusic_sb)';
+use constant CACHE_TTL          => 300; # seconds
 
 my $log = Slim::Utils::Log->addLogCategory({
 	'category'     => 'plugin.filtermusicdev',
@@ -73,6 +83,30 @@ my $log = Slim::Utils::Log->addLogCategory({
 my $lastGoodMenu;
 my $lastFetchTime  = 0;
 my $lastGenerated;
+
+# wallpapers.json's 'body'/'title' credit text is HTML, e.g. "Die Schlange
+# des B. by&nbsp;Nicola Napoli" - decode the handful of entities that
+# actually turn up in it rather than pulling in an HTML::Entities dependency
+# for this alone.
+my %ENTITIES = (
+	'amp'   => '&',  'nbsp'  => ' ',  'quot'  => '"',  'apos'  => "'",
+	'lt'    => '<',  'gt'    => '>',
+	'rsquo' => "\x{2019}", 'lsquo' => "\x{2018}",
+	'rdquo' => "\x{201D}", 'ldquo' => "\x{201C}",
+	'mdash' => "\x{2014}", 'ndash' => "\x{2013}",
+);
+
+sub _decodeEntities {
+	my ($str) = @_;
+	return '' unless defined $str;
+	$str =~ s/&(#(\d+)|#x([0-9a-fA-F]+)|(\w+));/
+		defined $2 ? chr($2)
+		: defined $3 ? chr(hex($3))
+		: exists $ENTITIES{$4} ? $ENTITIES{$4}
+		: "&$4;"
+	/ge;
+	return $str;
+}
 
 sub getDisplayName { 'PLUGIN_FILTERMUSICDEV' }
 
@@ -163,10 +197,10 @@ sub toplevel {
 				return;
 			}
 
-			$lastGoodMenu  = $menu;
-			$lastGenerated = $feed->{generated};
-			$lastFetchTime = time();
-			$callback->($menu);
+			# station menu is built - now fetch the Artwork submenu before
+			# finalizing; a failure there must never hold up or break station
+			# browsing, so _fetchArtwork always finalizes either way
+			_fetchArtwork($client, $callback, $menu, $feed->{generated});
 		},
 
 		# fetch failure - fall back to the last successful result rather than
@@ -255,6 +289,103 @@ sub _buildMenu {
 	}
 
 	return \@menu;
+}
+
+# Fetch filtermusic.net's wallpapers.json feed and, if it decodes to a
+# non-empty array, append an "Artwork" node (built by _buildArtworkMenu) to
+# the already-built station $menu. Either way, _finalizeMenu is called at
+# the end - a fetch or parse failure here just means no Artwork node for
+# this visit, since station browsing doesn't depend on it.
+sub _fetchArtwork {
+	my ($client, $callback, $menu, $generated) = @_;
+
+	Slim::Networking::SimpleAsyncHTTP->new(
+		sub {
+			my $http = shift;
+
+			my $wallpapers = eval { _decodeWallpapers($http->content) };
+
+			if ($@ || !$wallpapers) {
+				$log->error('failed to parse wallpapers.json: ' . ($@ || 'malformed JSON'));
+			} else {
+				my $artwork = _buildArtworkMenu($client, $wallpapers);
+				push @$menu, $artwork if $artwork;
+			}
+
+			_finalizeMenu($callback, $menu, $generated);
+		},
+
+		sub {
+			my ($http, $error) = @_;
+			$log->error("error fetching filtermusic.net wallpapers.json: $error");
+			_finalizeMenu($callback, $menu, $generated);
+		},
+
+		{ timeout => 15 },
+	)->get(WALLPAPER_JSON_URL, 'User-Agent' => USER_AGENT);
+}
+
+# Decode wallpapers.json's body into a Perl structure and do just enough
+# shape validation to fail loudly (caught by the eval in _fetchArtwork).
+# Feed shape: [ { title, body, field_wallpaper }, ... ] - body is either an
+# HTML string or the JSON boolean false when there's no credit.
+sub _decodeWallpapers {
+	my ($content) = @_;
+
+	my $wallpapers = decode_json($content);
+
+	die "wallpapers feed is not a JSON array\n" unless ref $wallpapers eq 'ARRAY';
+	die "wallpapers feed is empty\n" unless @$wallpapers;
+
+	return $wallpapers;
+}
+
+# Turn a decoded wallpapers.json array into a single "Artwork" menu node,
+# mirroring _buildMenu's shape. Each item pairs an image with its
+# artist/photographer credit (falling back to the title when there's no
+# separate credit); entries without a field_wallpaper are skipped.
+sub _buildArtworkMenu {
+	my ($client, $wallpapers) = @_;
+
+	my @items;
+
+	for my $entry (@$wallpapers) {
+		next unless ref $entry eq 'HASH' && length $entry->{field_wallpaper};
+
+		my $title = $entry->{title} || $entry->{field_wallpaper};
+		my $image = WALLPAPER_BASE_URL . $entry->{field_wallpaper};
+
+		# body is a JSON boolean false, not a string, when there's no credit
+		my $credit = $entry->{body} ? $entry->{body} : ($entry->{title} || '');
+		$credit =~ s/<[^>]+>//g;
+		$credit =~ s/\s+/ /g;
+		$credit =~ s/^\s+|\s+$//g;
+		$credit = _decodeEntities($credit);
+
+		push @items, {
+			name        => $title,
+			type        => 'text',
+			icon        => $image,
+			image       => $image,
+			description => $credit,
+		};
+	}
+
+	return undef unless @items;
+
+	return {
+		name  => cstring($client, 'PLUGIN_FILTERMUSICDEV_ARTWORK'),
+		items => \@items,
+	};
+}
+
+sub _finalizeMenu {
+	my ($callback, $menu, $generated) = @_;
+
+	$lastGoodMenu  = $menu;
+	$lastGenerated = $generated;
+	$lastFetchTime = time();
+	$callback->($menu);
 }
 
 1;

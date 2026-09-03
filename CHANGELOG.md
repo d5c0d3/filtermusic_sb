@@ -1,5 +1,23 @@
 # Changelog
 
+## 2.3.0 (2026-09-03)
+
+Adds a browsable **Artwork** menu item alongside the genre list, sourced from filtermusic.net's
+`wallpapers.json` feed - the same feed the Material Skin background-photo feature (1.1.0-1.5.0) used
+before being removed for being an invisible, unverifiable backdrop. Rather than trying that again, the
+artwork is now shown directly: each entry appears as a browsable item pairing the image with its
+artist/photographer credit (`body`, falling back to `title` when there's no separate credit - about a
+third of the live feed's entries have `body: false`).
+
+- **New `_fetchArtwork`/`_buildArtworkMenu`/`_decodeWallpapers`** in `Plugin.pm`, following `toplevel`'s
+  existing fetch-decode-build pattern. The wallpapers.json fetch happens after the station menu is
+  built, and a failure or parse error there is only ever logged - it never blocks or breaks station
+  browsing, which doesn't depend on it.
+- **Reintroduces `_decodeEntities`** (removed in 2.2.0 along with the old HTML-scraping parser) since
+  wallpapers.json's `body`/`title` credit text is HTML that can contain entities like `&nbsp;`.
+- Caching is unchanged: the Artwork node is appended to the menu before it's cached, so it's covered by
+  the same `CACHE_TTL` window as the rest of the menu, with no separate cache needed.
+
 ## 2.2.0 (2026-08-28)
 
 filtermusic.net's author added a JSON feed specifically for this plugin at

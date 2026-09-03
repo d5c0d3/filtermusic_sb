@@ -10,6 +10,9 @@ PLUGIN_FILTERMUSIC_FETCH_ERROR
 PLUGIN_FILTERMUSIC_PARSE_ERROR
 	EN	Could not read the station list from filtermusic.net. The site may have changed.
 
+PLUGIN_FILTERMUSIC_ARTWORK
+	EN	Artwork
+
 SETUP_PLUGIN_FILTERMUSIC_MENU
 	EN	FilterMusic Menu
 

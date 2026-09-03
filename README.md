@@ -16,6 +16,8 @@ GitHub Pages serves at <https://d5c0d3.github.io/filtermusic_sb/repo.xml>.
 - **Direct playback** - each station plays straight from the stream URL filtermusic.net already lists;
   no extra per-station page fetch.
 - **Station artwork and descriptions** for every entry, read straight from filtermusic.net's own feed.
+- **Browse artwork with artist credits** - a separate "Artwork" menu item lists the images featured on
+  filtermusic.net, each paired with its artist/photographer credit. See "How it works" below.
 - **Add to Favorites** shortcut from the Settings page, for pinning FilterMusic to your Favorites menu.
 - **Resilient to filtermusic.net being down or changing**: if a visit's fetch fails, or the feed's
   format changes enough to break parsing, the plugin falls back to the last successful load instead of
@@ -98,6 +100,22 @@ at all, since the whole subtree is already in the response for the top-level men
 beyond the cache window is the last successful result, used as a fallback if a fetch or parse ever
 fails.
 
+Once the station menu is built, the plugin also fetches `https://filtermusic.net/wallpapers.json` and
+appends an "Artwork" node to the menu from it - `_fetchArtwork`/`_buildArtworkMenu` in `Plugin.pm`. This
+is the same feed the Material Skin background-photo feature (added 1.1.0, removed 1.5.0) used to pick an
+invisible backdrop image; here each entry is instead shown as a browsable item pairing the image with
+its artist/photographer credit:
+
+```
+[ { title, body, field_wallpaper } ]
+```
+
+`field_wallpaper` is a filename appended to `https://filtermusic.github.io/wallpaper/` for the image
+URL; the credit shown is `body` (HTML, stripped and entity-decoded) when present, or `title` otherwise -
+`body` comes back as the JSON boolean `false`, not an empty string, on entries with no credit. A failure
+to fetch or parse wallpapers.json is only ever logged: it never blocks or breaks station browsing, and
+the menu is simply built without an Artwork node for that visit.
+
 Because this depends on the feed's current shape, a breaking change to it can break parsing. If
 browsing FilterMusic in LMS starts showing an empty menu or a "could not read the station list" error,
 check `FilterMusic/Plugin.pm`'s `_decodeFeed`/`_buildMenu` against the feed's current shape first.
@@ -130,8 +148,10 @@ filtermusic.net markup. Version 2.0.0 consolidates a run of small follow-up rele
 (and then removed, after it turned out unworkable in practice) an optional Material Skin background
 photo, and simplified the caching approach down to a fresh fetch on every visit. Version 2.2.0 moved
 off homepage-markup scraping entirely onto a `stations.json` feed filtermusic.net now publishes for
-this plugin, and added the lightweight in-memory cache described above. See `CHANGELOG.md` for the
-full detail.
+this plugin, and added the lightweight in-memory cache described above. Version 2.3.0 revisited the
+Material Skin background photo's old `wallpapers.json` data source, this time surfacing it as a
+browsable Artwork menu item with artist credit rather than an invisible backdrop. See `CHANGELOG.md`
+for the full detail.
 
 ## Credits
 
