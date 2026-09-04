@@ -126,12 +126,17 @@ redundant per-entry rebuild work. A failure to fetch or parse wallpapers.json fa
 known good Artwork node if one exists, the same "keep the last known good result" fallback the station
 menu uses; it never blocks or breaks station browsing either way.
 
-Each Artwork item also carries a `jive` block (`_buildArtworkItem`) giving Jive/app/JSON-RPC clients two
-actions the Default web skin already gets for free: selecting the item shows the image full-screen
-(`actions.do` targets LMS's own stock `artwork` command, plus `showBigArtwork => 1` - the same mechanism
-`Slim::Menu::TrackInfo`/`AlbumInfo` use for "Show Artwork"), and its "more" screen shows the credit plus,
-when the raw `body` contains a source `<a href="...">`, a **Browse Original** link to it. That "more"
-screen is powered by a small CLI command this plugin registers itself
+Each Artwork item's own `name` embeds its credit as a second line (`"$title\n$credit"`) whenever the
+credit says something the title doesn't - Material Skin (see below) renders this as two lines in both
+its list rows and its native fullscreen caption.
+
+Each item also carries a `jive` block (`_buildArtworkItem`) whose only job is a "more" screen - selecting
+the item itself is left alone (see "Known issues" for why). That "more" screen shows the title/credit, a
+**Show Artwork** entry (`actions.do` targets LMS's own stock `artwork` command, plus
+`showBigArtwork => 1` - the same mechanism `Slim::Menu::TrackInfo`/`AlbumInfo` use, but placed on this
+secondary item exactly like those two core precedents do, never on the primary row - see "Known issues"),
+and, when the raw `body` contains a source `<a href="...">`, a **Browse Original** link to it. That
+"more" screen is powered by a small CLI command this plugin registers itself
 (`Slim::Control::Request::addDispatch` in `initPlugin`, `filtermusicartworkinfo` /
 `filtermusicdevartworkinfo` per plugin so the two don't collide when both are installed) - `_artworkInfo`
 bridges the dispatch's `$request`-based calling convention into a normal feed sub via
@@ -163,12 +168,32 @@ install (working) side by side. (The literally-named **"Classic"** skin is a sep
 regardless of LMS version or image format: it has no `xmlbrowser.html` of its own and falls back to
 LMS's bare legacy template, which never shows artwork for `type => 'audio'` items at all.)
 
-**Full-screen Artwork view on Jive/hardware/app clients isn't independently verified.** The server-side
-contract for it (`showBigArtwork` plus LMS's own `artwork` CLI command, set in each Artwork item's
-`jive` block) is real, confirmed straight from `LMS-Community/slimserver`'s source - but how
-SqueezePlay/Jive firmware actually paints that screen, and how Material Skin's client-side JS handles it,
-aren't things this repository's source can confirm, since neither firmware nor Material Skin's own repo
-was checked. It's confirmed working in the Default web skin (opens the image full-size in a new tab).
+**Selecting an Artwork item does nothing on its own, by design - fullscreen lives one level down, in
+"more".** Earlier (2.4.0) it set `jive.showBigArtwork` directly on the primary item, since that's the
+pattern most third-party plugins (e.g. `MusicArtistInfo`) reach for. That broke Material Skin outright:
+`Slim::Control::XMLBrowser.pm` hoists `jive.showBigArtwork` onto every JSON-RPC/CLI client's top-level
+response, and Material's own `browse-resp.js` (confirmed by reading it directly) unconditionally drops
+any item carrying it - emptying the whole Artwork list in Material, while Material's *own* native
+gallery viewer already gave a perfectly good fullscreen+next/prev experience for a plain item list with
+no flags at all. Real core LMS never puts `showBigArtwork` on a primary row either -
+`Slim::Menu::TrackInfo`/`AlbumInfo` push a dedicated "Show Artwork" item into that track/album's own info
+menu - so 2.4.1 does the same: the primary item just shows/opens normally per-client (a plain image in
+the Default web skin, Material's own native viewer), and "Show Artwork" lives in the "more" screen for
+Jive/app clients that need an explicit action for it.
+
+**Default web skin's fullscreen view has no caption, deliberately.** The only way to add one there is
+`Ext.ux.Lightbox` (triggered by `type => 'slideshow'` on the Artwork container) - confirmed it *would*
+show a title from the clicked image's own markup, but also confirmed (by tracing Material's
+`browseBuildCommand`) that enabling it would make Material request an alternate, flattened response shape
+its `parseBrowseResp` can't parse at all, re-breaking Material's list via a different mechanism than the
+one just fixed. Not worth it for a caption - Default's fullscreen stays a plain new-tab image view.
+
+**SqueezePlay/Jive's `showBigArtwork` screen has no confirmed caption support**, and its actual
+client-side rendering isn't independently verified from this repo (SqueezePlay/Jivelite firmware source
+isn't available to check) - the server-side contract (`showBigArtwork` plus LMS's own `artwork` CLI
+command) is real, confirmed straight from `LMS-Community/slimserver`'s source, and does open something,
+but neither a title/credit caption nor the exact screen it paints is something this repository's source
+can confirm.
 
 ## History
 
@@ -186,7 +211,10 @@ this plugin, and added the lightweight in-memory cache described above. Version 
 Material Skin background photo's old `wallpapers.json` data source, this time surfacing it as a
 browsable Artwork menu item with artist credit rather than an invisible backdrop. Version 2.4.0 made
 Artwork items interactive: full-screen viewing and a "Browse Original" link back to an entry's source,
-where its credit links to one. See `CHANGELOG.md` for the full detail.
+where its credit links to one - fullscreen came at the cost of a regression, fixed in 2.4.1, which
+emptied the whole list in Material Skin; 2.4.1 also moved fullscreen into the "more" screen (matching
+real core LMS convention) and started showing title+credit together. See `CHANGELOG.md` for the full
+detail.
 
 ## Credits
 

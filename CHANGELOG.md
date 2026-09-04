@@ -1,5 +1,50 @@
 # Changelog
 
+## 2.4.1 (2026-09-03)
+
+Fixes a regression 2.4.0 introduced: the Artwork menu rendered **empty in Material Skin**. Root-caused
+against real source (`LMS-Community/slimserver`, `CDrummond/lms-material`, both cloned and read directly)
+rather than guessed, and confirmed against the reporter's own before/after testing.
+
+- **Root cause.** `Slim::Control::XMLBrowser.pm` unconditionally hoists `item->{jive}{showBigArtwork}`
+  onto a top-level `showBigArtwork` field for every JSON-RPC/CLI client. Material Skin's own
+  `browse-resp.js` unconditionally drops any item carrying `showBigArtwork==1` unless the browse command
+  is literally `"musicartistinfo"` (a hardcoded carve-out for LMS's own built-in artist-photo feature) -
+  FilterMusic's command never matches, so 2.4.0's `jive.showBigArtwork` on every Artwork item emptied the
+  whole list in Material. Before that flag existed (2.3.0.2), Material's own native gallery viewer
+  already showed the list, full-screen images, and next/prev navigation between them with no special
+  flags at all - 2.4.0 broke that for no benefit to Material.
+- **Fix: moved the fullscreen action off the primary item, onto a "Show Artwork" entry inside the "more"
+  screen instead** - exactly matching real, currently-shipping core LMS convention
+  (`Slim::Menu::TrackInfo::showArtwork`/`AlbumInfo::showArtwork`, both of which push a dedicated
+  "Show Artwork" item into their track/album's own info menu, never onto the primary row). Restores
+  Material's native list/fullscreen/navigation untouched, while SqueezePlay/Jive-capable clients now
+  reach fullscreen via "more" → "Show Artwork" (reusing LMS's own existing `SHOW_ARTWORK_SINGLE` string,
+  already localized, instead of adding a new one). `jive.actions.more` (the "Browse Original" mechanism)
+  was never implicated in the regression - confirmed by tracing Material's "more"-screen rendering
+  (identical code path as the main list) line by line: a plain credit-text item and a `weblink` item both
+  survive its filtering and work correctly; only the new "Show Artwork" entry is (harmlessly) dropped
+  there for Material, which doesn't need it.
+- **Title and credit now shown together, in Material's fullscreen caption and its list rows.** Material's
+  native fullscreen viewer already shows a caption sourced from the item's processed title - but for
+  `type=>'text'` items it never derives a separate subtitle field. The item's `name` now embeds the
+  credit as a second line (`"$title\n$credit"`, only when they differ) since Material converts embedded
+  newlines to line breaks in both its list rows and its fullscreen caption. The "more" screen
+  (`_artworkInfoFeed`) similarly now shows a distinct title line ahead of the credit line, satisfying the
+  same "title/artist name visible" ask there too.
+- **Investigated and deliberately rejected: enabling Default web skin's slideshow/Lightbox mode**
+  (`type=>'slideshow'` on the Artwork container) to get a caption there too. Traced Material's own
+  `browseBuildCommand` and confirmed it faithfully forwards server-injected action params - so enabling
+  slideshow mode would make Material request the alternate, flattened response shape
+  (`Slim::Control::XMLBrowser.pm`'s `slideshow` request-param branch) that its `parseBrowseResp` has no
+  code path for at all, re-breaking Material via a different mechanism. Not doing this: Default's
+  fullscreen stays a plain new-tab image view, no caption, same as before this release - a verified
+  trade-off, not an oversight.
+- SqueezePlay/Jive's `showBigArtwork` screen still has no confirmed caption support (the `artwork` CLI
+  command only ever returns `artworkUrl`/`artworkId`/`offset`, and both core precedents label their
+  "Show Artwork" item with a fixed generic string, never dynamic per-item text) - flagged as unconfirmed
+  rather than attempted, since SqueezePlay/Jivelite's own client source isn't available to check.
+
 ## 2.4.0 (2026-09-03)
 
 Artwork items now do something when selected, instead of being a dead end: click one to see the image

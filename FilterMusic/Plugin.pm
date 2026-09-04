@@ -3,7 +3,7 @@ package Plugins::FilterMusic::Plugin;
 #########################################################################
 # Plugin: FilterMusic                                                   #
 #                                                                       #
-# Version: 2.4.0                                                       #
+# Version: 2.4.1                                                       #
 #                                                                       #
 # Website: https://filtermusic.net                                     #
 #                                                                       #
@@ -47,14 +47,24 @@ package Plugins::FilterMusic::Plugin;
 #    instead of an invisible, unverifiable backdrop. A failure to      #
 #    fetch or parse it never breaks station browsing, which doesn't    #
 #    depend on it - see _fetchArtwork.                                 #
-#  - Artwork items also carry a 'jive' block (see _buildArtworkItem)   #
-#    so Jive/app/JSON-RPC clients can show the image full-screen       #
-#    (reusing LMS's own 'artwork' CLI command, the same mechanism      #
-#    Slim::Menu::TrackInfo/AlbumInfo use) and offer a "more" screen    #
-#    with the credit and, when the entry's body links to one, a        #
-#    "Browse Original" link to the source - see _artworkInfo. The web  #
-#    skin already opens the image full-screen for free from a plain    #
-#    type=>'text' item with an image, with no code needed for that.    #
+#  - Artwork items carry a 'jive' block (see _buildArtworkItem) whose    #
+#    only job is a "more" screen - see _artworkInfo/_artworkInfoFeed -  #
+#    showing the title/credit, a "Show Artwork" fullscreen action       #
+#    (reusing LMS's own 'artwork' CLI command, the same mechanism       #
+#    Slim::Menu::TrackInfo/AlbumInfo use), and, when the entry's body   #
+#    links to one, a "Browse Original" link to the source. The         #
+#    fullscreen action deliberately does NOT live on the primary item  #
+#    itself: LMS hoists a 'jive.showBigArtwork' flag there onto every   #
+#    JSON-RPC/CLI client's top-level response, and Material Skin's own  #
+#    list renderer unconditionally drops any item carrying it,          #
+#    emptying the whole list - confirmed against Material's real       #
+#    source, and matching real core LMS's own convention (TrackInfo/    #
+#    AlbumInfo put "Show Artwork" in the info/"more" menu too, never    #
+#    on the primary row). Material has its own native fullscreen+       #
+#    next/prev navigation for a plain list of image items anyway, so    #
+#    this loses it nothing. The web skin also already opens the image   #
+#    full-screen for free from a plain type=>'text' item with an       #
+#    image - no jive needed there either.                              #
 #########################################################################
 
 use strict;
@@ -444,29 +454,40 @@ sub _buildArtworkItem {
 	$credit =~ s/^\s+|\s+$//g;
 	$credit = _decodeEntities($credit);
 
+	# NOT setting 'showBigArtwork'/'actions.do' here - LMS hoists
+	# jive.showBigArtwork onto every JSON-RPC/CLI client's top-level response
+	# (Slim::Control::XMLBrowser.pm), and Material Skin's own list renderer
+	# unconditionally drops any item carrying it (confirmed against its
+	# source), silently emptying this whole list. Real core LMS
+	# (Slim::Menu::TrackInfo::showArtwork/AlbumInfo::showArtwork) never puts
+	# this on a primary browsable row either - it lives on a dedicated
+	# "Show Artwork" item inside that row's own info/"more" menu, which is
+	# exactly where _artworkInfoFeed puts it below. This also restores
+	# Material's own native fullscreen+next/prev navigation for this list,
+	# confirmed working before 'jive' existed here at all.
 	return {
-		name        => $title,
+		name        => ($credit ne '' && $credit ne $title) ? "$title\n$credit" : $title,
 		type        => 'text',
 		icon        => $image,
 		image       => $image,
 		description => $credit,
-		# lets Jive/app/JSON-RPC clients show the image full-screen (the web
-		# skin already does this for free from a plain type=>'text' item
-		# with an image) and offer a "more" screen with the credit and,
-		# when $sourceUrl is set, a "Browse Original" link - see
-		# _artworkInfo, which decides what to show and whether the
-		# requesting client can actually follow a weblink at all
+		# offers a "more" screen with the title/credit, a "Show Artwork"
+		# fullscreen action, and (when $sourceUrl is set) a "Browse
+		# Original" link - see _artworkInfo/_artworkInfoFeed
 		jive => {
 			actions => {
-				do   => { cmd => [ 'artwork', $image ] },
 				more => {
 					player => 0,
 					cmd    => [ ARTWORK_INFO_CMD, 'items' ],
-					params => { credit => $credit, source => (defined $sourceUrl ? $sourceUrl : '') },
+					params => {
+						title  => $title,
+						credit => $credit,
+						source => (defined $sourceUrl ? $sourceUrl : ''),
+						image  => $image,
+					},
 					window => { isContextMenu => 1 },
 				},
 			},
-			showBigArtwork => 1,
 		},
 	};
 }
@@ -484,16 +505,34 @@ sub _artworkInfo {
 
 # The "more" screen's actual content, invoked by _artworkInfo above via
 # cliQuery using the normal ($client, $callback, $args) feed-sub signature.
-# $args->{params} carries the credit/source text that was already known
-# when the item was built (see the 'jive' block in _buildArtworkItem), so
-# this never needs a network fetch of its own.
+# $args->{params} carries the title/credit/source/image that was already
+# known when the item was built (see the 'jive' block in _buildArtworkItem),
+# so this never needs a network fetch of its own.
 sub _artworkInfoFeed {
 	my ($client, $callback, $args) = @_;
 	my $params = $args->{params} || {};
 
 	my @items;
 
+	# title as its own line only when it says something the credit line
+	# doesn't already say (they're often identical - see _buildArtworkItem)
+	push @items, { type => 'text', name => $params->{title} }
+		if length $params->{title} && $params->{title} ne $params->{credit};
 	push @items, { type => 'text', name => $params->{credit} } if length $params->{credit};
+
+	# "Show Artwork" - the fullscreen action, kept off the primary list item
+	# (see _buildArtworkItem's comment) and offered here instead, exactly
+	# where real core LMS (Slim::Menu::TrackInfo::showArtwork) puts it
+	if (length $params->{image}) {
+		push @items, {
+			type => 'text',
+			name => cstring($client, 'SHOW_ARTWORK_SINGLE'),
+			jive => {
+				actions        => { do => { cmd => [ 'artwork', $params->{image} ] } },
+				showBigArtwork => 1,
+			},
+		};
+	}
 
 	if (length $params->{source}) {
 		if (Slim::Utils::Misc::canFollowWeblinks($client)) {
