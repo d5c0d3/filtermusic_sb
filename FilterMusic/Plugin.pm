@@ -3,7 +3,7 @@ package Plugins::FilterMusic::Plugin;
 #########################################################################
 # Plugin: FilterMusic                                                   #
 #                                                                       #
-# Version: 2.3.0                                                       #
+# Version: 2.3.1                                                       #
 #                                                                       #
 # Website: https://filtermusic.net                                     #
 #                                                                       #
@@ -391,11 +391,14 @@ sub _artworkScreensaverImages {
 	$request->setStatusProcessing() unless $request->isStatusDone();
 }
 
-# Decode wallpapers.json and turn it into the flat {image, caption} array
-# _artworkScreensaverImages responds with. Feed shape: [ { title, body,
-# field_wallpaper }, ... ] - body is either an HTML string or the JSON
-# boolean false when there's no credit; entries without a field_wallpaper
-# are skipped.
+# Decode wallpapers.json and turn it into the flat {image, caption, owner}
+# array _artworkScreensaverImages responds with - caption/owner are two of
+# ImageSourceServer.lua's three independent, optional text lines (the third,
+# 'date', isn't in this feed), which it joins together for display, so the
+# title and credit both show rather than one replacing the other. Feed
+# shape: [ { title, body, field_wallpaper }, ... ] - body is either an HTML
+# string or the JSON boolean false when there's no credit; entries without a
+# field_wallpaper are skipped.
 sub _buildScreensaverImages {
 	my ($content) = @_;
 
@@ -411,12 +414,18 @@ sub _buildScreensaverImages {
 
 		my $title = $entry->{title} || $entry->{field_wallpaper};
 
-		# body is a JSON boolean false, not a string, when there's no credit
-		my $credit = $entry->{body} ? $entry->{body} : ($entry->{title} || '');
-		$credit =~ s/<[^>]+>//g;
-		$credit =~ s/\s+/ /g;
-		$credit =~ s/^\s+|\s+$//g;
-		$credit = _decodeEntities($credit);
+		# body is a JSON boolean false, not a string, when there's no credit -
+		# only set $credit when there's a real one, so it can be sent as its
+		# own 'owner' field alongside the title rather than replacing it
+		my $credit;
+		if ($entry->{body}) {
+			$credit = $entry->{body};
+			$credit =~ s/<[^>]+>//g;
+			$credit =~ s/\s+/ /g;
+			$credit =~ s/^\s+|\s+$//g;
+			$credit = _decodeEntities($credit);
+			undef $credit unless length($credit) && $credit ne $title;
+		}
 
 		# Jivelite's ImageSourceServer.lua only ever recognizes a literal
 		# 'http://' prefix as "already absolute" - a plain https:// URL to
@@ -443,7 +452,8 @@ sub _buildScreensaverImages {
 
 		push @images, {
 			image   => $proxiedImage,
-			caption => length($credit) ? $credit : $title,
+			caption => $title,
+			( defined $credit ? ( owner => $credit ) : () ),
 		};
 	}
 

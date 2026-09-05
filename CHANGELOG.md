@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+**Fixed the screensaver's caption never showing a wallpaper's title once it had a credit.**
+`_buildScreensaverImages`'s final `caption => length($credit) ? $credit : $title` never actually reached
+the `$title` fallback, because `$credit` itself already defaulted to `$title` when there was no separate
+credit - so `$credit` had length whenever `$title` did, and the ternary always took the `$credit` branch.
+Net effect: whenever a wallpaper had a real photographer/artist credit, only that credit showed - the
+wallpaper's own title never displayed. Fixed by sending the title as `caption` and the credit (only when
+there is one, and only when distinct from the title) as `owner` - two of `ImageSourceServer.lua`'s three
+independent, optional text lines, which it joins together for display, so both show together rather than
+one replacing the other.
+
+**Documented the player's own Image Viewer settings** (zoom, rotation, delay, ordering, and the text-info
+toggle) in README.md - these already worked for the FilterMusic Artwork screensaver like any other Image
+Viewer source, they just weren't mentioned anywhere.
+
 **Dropped the `FilterMusicDev`/`repo-dev.xml` dev-testing convention.** It existed so a branch's build
 could be installed and compared side-by-side with the real, currently-installed FilterMusic - the only
 way to do that under LMS's plugin manager, since `Slim::Plugin::Extensions::Plugin::findUpdates` merges

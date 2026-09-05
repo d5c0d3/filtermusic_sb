@@ -112,8 +112,10 @@ top-level home-menu item for that field and registers each entry as a selectable
 screensaver Image Viewer, whose `ImageSourceServer.lua` fetches images by calling the entry's `cmd` - a
 new CLI command, `filtermusicartworkscreensaver`, registered alongside the main menu. It fetches
 `https://filtermusic.net/wallpapers.json` (the same feed the long-removed Material Skin background-photo
-feature, 1.1.0-1.5.0, once used) and responds with `{ data: [ {image, caption}, ... ] }`, the shape
-`ImageSourceServer.lua` expects.
+feature, 1.1.0-1.5.0, once used) and responds with `{ data: [ {image, caption, owner}, ... ] }`, the shape
+`ImageSourceServer.lua` expects - `caption` carries the wallpaper's title and `owner` its
+artist/photographer credit when there is one (both display together, joined by `ImageSourceServer.lua`
+itself), rather than one replacing the other.
 
 This only affects Jivelite-based players (Squeezebox Touch/Radio, SqueezePlay) - it has no effect on
 Material Skin or the Default web skin, which don't have a screensaver Image Viewer. Toggling the setting
@@ -138,6 +140,18 @@ slash of its own - one did, briefly, and produced a doubled `//` that never matc
 
 Confirmed working end-to-end on SqueezePlay: the screensaver cycles through filtermusic.net's artwork
 with captions, images loading via the imageproxy route above.
+
+**Zoom, rotation, delay, ordering, and whether the caption/credit text shows at all are all controlled
+by the player itself, not this plugin.** From the Screensavers picker, select "FilterMusic Artwork" (or
+"Image Viewer", since it's the same underlying applet) and open its "Image Viewer Settings" row - this
+is Jivelite's own, pre-existing settings screen (`ImageViewerApplet.lua`), unrelated to any code in this
+plugin:
+
+- **Image zoom** - show the complete image (may letterbox) or fill the complete screen (may crop).
+- **Image rotation** - on/off, for players that support screen rotation.
+- **Delay** - how long each image stays on screen: 5, 10, 20, 30, or 60 seconds.
+- **Ordering** - sequential or random.
+- **Text info** - shows or hides the caption/credit text this plugin supplies for each image.
 
 ## Known issues
 
