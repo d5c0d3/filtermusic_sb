@@ -24,6 +24,20 @@ never putting artwork into the station browse tree at all:
   idempotent by `id` - it replaces rather than duplicates the existing entry), so a running server picks
   up the change without restarting; an already-connected player may still need to reconnect to see it,
   since the server doesn't push a live update to a connected player's home menu on a pref change.
+  Confirmed working end-to-end on SqueezePlay: "FilterMusic Artwork" appears in the Screensavers picker
+  (When playing/stopped/off) after reconnecting.
+- **Fixed images failing to load** ("Invalid image object found - Could not retrieve image file").
+  `ImageSourceServer.lua` only recognizes a literal `http://` prefix as an already-absolute URL; the
+  plain `https://filtermusic.github.io/...` URLs this feature originally sent fell through to its
+  "url on current server" branch instead, which prepended the LMS server's own `http://<ip>:<port>/` in
+  front of them, producing a URL that could never resolve. (A plain `http://` URL would have fared no
+  better - it would have hit that Lua file's third branch, LMS's own long-decommissioned SqueezeNetwork
+  image proxy.) Fixed by routing each image through LMS's own `/imageproxy/` (`Slim::Web::ImageProxy.pm`)
+  instead, with the literal `{resizeParams}` placeholder `ImageSourceServer.lua` looks for baked into the
+  path so it substitutes real dimensions before fetching - confirmed against
+  `Slim::Web::Graphics.pm`'s spec-parsing regex that this produces a real resize spec rather than
+  tripping `Slim::Web::ImageProxy.pm`'s bare-extension redirect shortcut (not guaranteed to be followed
+  by Jivelite's own HTTP client).
 
 **Reverted the in-tree "Artwork" browse menu (2.3.0-2.4.1).** Browsing filtermusic.net's wallpapers.json
 feed as a menu item, full-screen viewing, and a "Browse Original" source link were added, tested, and

@@ -121,9 +121,18 @@ Material Skin or the Default web skin, which don't have a screensaver Image View
 re-registers the menu entry immediately (`Slim::Control::Jive::registerPluginMenu` is idempotent by
 `id`, so this replaces rather than duplicates it), which newly-connecting players pick up right away; an
 already-connected player may still need to reconnect to see the change, since the server doesn't push a
-live update to its home menu on a pref change. No existing LMS plugin uses this screensaver mechanism, so
-it's untested outside this plugin - if the new source doesn't appear on a player's screensaver settings
-after reconnecting it, that's the first thing to check.
+live update to its home menu on a pref change. Confirmed working on SqueezePlay: after reconnecting,
+"FilterMusic Artwork" appears in the Screensavers picker (When playing / When stopped / When off),
+alongside "Image Viewer" and "Clock" - it is its own separate screensaver entry, not a new source added
+to Image Viewer's own "Sources" screen, which is a fixed, hardcoded list (`http`/`flickr`/`card`/`usb`/
+`storage`) that can't be extended from a server-side plugin at all.
+
+Each image is served through LMS's own `/imageproxy/` (`Slim::Web::ImageProxy.pm`) rather than pointing
+`ImageSourceServer.lua` straight at filtermusic.net's own URLs - that Lua file only recognizes a literal
+`http://` prefix as "already absolute" (a plain `https://` URL falls through to a branch that mangles it
+by prepending the LMS server's own address in front of it), and even a plain `http://` external URL would
+hit its third branch, LMS's own long-decommissioned SqueezeNetwork image proxy. Routing through
+`/imageproxy/` sidesteps both.
 
 ## Known issues
 

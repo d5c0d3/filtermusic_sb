@@ -62,6 +62,8 @@ use base qw(Slim::Plugin::OPMLBased);
 
 use JSON::XS::VersionOneAndTwo;
 
+use URI::Escape qw(uri_escape_utf8);
+
 use Slim::Control::Jive;
 use Slim::Control::Request;
 use Slim::Networking::SimpleAsyncHTTP;
@@ -422,8 +424,26 @@ sub _buildScreensaverImages {
 		$credit =~ s/^\s+|\s+$//g;
 		$credit = _decodeEntities($credit);
 
+		# Jivelite's ImageSourceServer.lua only ever recognizes a literal
+		# 'http://' prefix as "already absolute" - a plain https:// URL to
+		# filtermusic.github.io falls through to its "url on current server"
+		# branch, which mangles it by prepending the LMS server's own
+		# http://<ip>:<port>/ in front of it. Routing through LMS's own
+		# /imageproxy/ (Slim::Web::ImageProxy.pm) instead gives it a
+		# server-relative path that branch handles correctly - and even a
+		# plain http:// external URL would otherwise hit ImageSourceServer's
+		# third branch, LMS's now-decommissioned SqueezeNetworks image proxy.
+		# The literal '{resizeParams}' token is ImageSourceServer's own
+		# placeholder - it substitutes real dimensions into it before
+		# fetching, which Slim::Web::Graphics.pm's spec parser reads as a
+		# real resize spec (not just a bare extension), taking imageproxy's
+		# normal fetch+resize path rather than its bare-extension redirect
+		# shortcut.
+		my $proxiedImage = '/imageproxy/' . uri_escape_utf8(WALLPAPER_BASE_URL . $entry->{field_wallpaper})
+			. '/image{resizeParams}.png';
+
 		push @images, {
-			image   => WALLPAPER_BASE_URL . $entry->{field_wallpaper},
+			image   => $proxiedImage,
 			caption => length($credit) ? $credit : $title,
 		};
 	}
