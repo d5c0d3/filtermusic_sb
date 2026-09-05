@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 2.3.0 (2026-09-05)
 
 **Added an optional screensaver Image Viewer source, decoupled from the station menu entirely.**
 Following the Artwork-menu revert above, a new "FilterMusic Screensaver" toggle in Settings offers
@@ -46,7 +46,9 @@ never putting artwork into the station browse tree at all:
     log for a real working case (a station's WebP logo conversion), which shows the identical
     `imageproxy/https://...` shape with no leading slash.
 
-**Reverted the in-tree "Artwork" browse menu (2.3.0-2.4.1).** Browsing filtermusic.net's wallpapers.json
+**Reverted the in-tree "Artwork" browse menu (previously numbered 2.3.0-2.4.1 on this branch, never
+published to `repo.xml` - this release reuses "2.3.0" for the screensaver feature above instead).**
+Browsing filtermusic.net's wallpapers.json
 feed as a menu item, full-screen viewing, and a "Browse Original" source link were added, tested, and
 then removed after hitting structural conflicts confirmed against real `LMS-Community/slimserver` and
 `CDrummond/lms-material` source - not bugs to patch, but incompatible requirements from the same shared
