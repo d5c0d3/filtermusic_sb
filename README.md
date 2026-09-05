@@ -127,12 +127,18 @@ alongside "Image Viewer" and "Clock" - it is its own separate screensaver entry,
 to Image Viewer's own "Sources" screen, which is a fixed, hardcoded list (`http`/`flickr`/`card`/`usb`/
 `storage`) that can't be extended from a server-side plugin at all.
 
-Each image is served through LMS's own `/imageproxy/` (`Slim::Web::ImageProxy.pm`) rather than pointing
+Each image is served through LMS's own `imageproxy/` (`Slim::Web::ImageProxy.pm`) rather than pointing
 `ImageSourceServer.lua` straight at filtermusic.net's own URLs - that Lua file only recognizes a literal
 `http://` prefix as "already absolute" (a plain `https://` URL falls through to a branch that mangles it
 by prepending the LMS server's own address in front of it), and even a plain `http://` external URL would
 hit its third branch, LMS's own long-decommissioned SqueezeNetwork image proxy. Routing through
-`/imageproxy/` sidesteps both.
+`imageproxy/` sidesteps both. That same branch already appends its own `/` before the path
+(`"http://" .. ip .. ":" .. port .. "/" .. urlString`), so the `image` field must **not** have a leading
+slash of its own - one did, briefly, and produced a doubled `//` that never matched
+`Slim::Web::Graphics.pm`'s `imageproxy/` route at all.
+
+Confirmed working end-to-end on SqueezePlay: the screensaver cycles through filtermusic.net's artwork
+with captions, images loading via the imageproxy route above.
 
 ## Known issues
 
