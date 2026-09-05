@@ -1,5 +1,44 @@
 # Changelog
 
+## Unreleased
+
+**Reverted the in-tree "Artwork" browse menu (2.3.0-2.4.1).** Browsing filtermusic.net's wallpapers.json
+feed as a menu item, full-screen viewing, and a "Browse Original" source link were added, tested, and
+then removed after hitting structural conflicts confirmed against real `LMS-Community/slimserver` and
+`CDrummond/lms-material` source - not bugs to patch, but incompatible requirements from the same shared
+item fields across clients:
+
+- The Default web skin's one-click-to-fullscreen behavior for a leaf item requires `type => 'text'`
+  (`Slim::Web::XMLBrowser.pm`). Jive/Material's native "more"/context-menu machinery requires the
+  opposite - `type` must NOT be `'text'`, or `Slim::Control::XMLBrowser.pm` never assigns the item an
+  `item_id` and there's no way to open a "more" screen on it at all. No single `type` value satisfies
+  both.
+- `jive.showBigArtwork` set on any item gets that item silently dropped by Material's own
+  `browse-resp.js`, which unconditionally filters out any item carrying a top-level `showBigArtwork` flag
+  unless the request's command is literally `"musicartistinfo"` (a hardcoded carve-out for LMS's own
+  built-in `MusicArtistInfo` plugin). This broke Material's Artwork list outright in 2.4.0; moving the
+  flag onto a secondary "Show Artwork" item inside a "more" screen worked around it in 2.4.1, but only by
+  reintroducing the next problem.
+- An item with `type => 'text'` and some `jive` action content but no explicit `go`/`do` gets a spurious
+  fallback `go` action from `Slim::Control::XMLBrowser.pm` (re-browsing the parent feed with no item
+  context) - confirmed to be the root cause of SqueezePlay's endless "select bounces back to the
+  FilterMusic root" loop, Material's inert "Show Artwork"/"Browse Original" rows (the bogus `go` masked
+  the intended `do`, since client action-resolution prefers `go`), and a literal `<br>` appearing in
+  Material's title text (the bogus `go` made `canClickItem()` wrongly report the item as clickable,
+  routing it to the wrong Vue render template).
+- `weblink` on a `type => 'text'` item (tried for "Browse Original") is structurally unreachable in
+  Material's click routing - `browseClick()` returns early for any text item before it ever reaches the
+  `item.weblink` check - matching a real, pre-existing limitation in core LMS's own
+  `Slim::Menu::TrackInfo::infoUrl` pattern, not something specific to this plugin.
+
+What's real and worth building on instead: Jivelite's Image Viewer screensaver has a genuine "Server"
+image source (`applets/ImageViewer/ImageSourceServer.lua`) that fetches a CLI response shaped
+`{image, caption, date, owner}` per entry - the same shape as core LMS's own `slideshow`-flag response
+format in `Slim::Control::XMLBrowser.pm` - and `applets/SlimMenus/SlimMenusApplet.lua` turns a
+`screensavers` array field on any top-level home-menu item into a selectable screensaver automatically,
+via `Slim::Control::Jive::registerPluginMenu`. No existing LMS plugin populates that field today (source:
+`ralph-irving/jivelite`), so it's new territory to build on rather than an existing pattern to copy.
+
 ## 2.2.0 (2026-08-28)
 
 filtermusic.net's author added a JSON feed specifically for this plugin at
