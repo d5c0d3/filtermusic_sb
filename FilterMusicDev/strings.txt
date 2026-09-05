@@ -18,3 +18,12 @@ SETUP_PLUGIN_FILTERMUSICDEV_MENU_DESC
 
 SETUP_PLUGIN_FILTERMUSICDEV_EDIT_MENU
 	EN	Add FilterMusic (Dev) to Favorites
+
+SETUP_PLUGIN_FILTERMUSICDEV_SCREENSAVER
+	EN	FilterMusic (Dev) Screensaver
+
+SETUP_PLUGIN_FILTERMUSICDEV_SCREENSAVER_DESC
+	EN	Offer FilterMusic's artwork as a "Server" source for the screensaver Image Viewer on Jivelite-based players (Squeezebox Touch/Radio, SqueezePlay). Takes effect immediately for newly-connecting players; an already-connected player may need to reconnect to see the change.
+
+PLUGIN_FILTERMUSICDEV_SCREENSAVER
+	EN	FilterMusic (Dev) Artwork

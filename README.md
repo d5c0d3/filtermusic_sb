@@ -17,6 +17,9 @@ GitHub Pages serves at <https://d5c0d3.github.io/filtermusic_sb/repo.xml>.
   no extra per-station page fetch.
 - **Station artwork and descriptions** for every entry, read straight from filtermusic.net's own feed.
 - **Add to Favorites** shortcut from the Settings page, for pinning FilterMusic to your Favorites menu.
+- **Optional screensaver Image Viewer source** - a Settings-page toggle offers filtermusic.net's
+  artwork as a "Server" source for the screensaver Image Viewer on Jivelite-based players (Squeezebox
+  Touch/Radio, SqueezePlay). See "How it works" below.
 - **Resilient to filtermusic.net being down or changing**: if a visit's fetch fails, or the feed's
   format changes enough to break parsing, the plugin falls back to the last successful load instead of
   showing an empty menu or hard error - see "How it works" below.
@@ -101,6 +104,26 @@ fails.
 Because this depends on the feed's current shape, a breaking change to it can break parsing. If
 browsing FilterMusic in LMS starts showing an empty menu or a "could not read the station list" error,
 check `FilterMusic/Plugin.pm`'s `_decodeFeed`/`_buildMenu` against the feed's current shape first.
+
+### Screensaver Image Viewer source
+
+Turning on "FilterMusic Screensaver" in Settings adds a `screensavers` field to the plugin's top-level
+Jive menu entry (see `initJive` in `Plugin.pm`). Jivelite's own `SlimMenusApplet.lua` watches every
+top-level home-menu item for that field and registers each entry as a selectable "Server" source for the
+screensaver Image Viewer, whose `ImageSourceServer.lua` fetches images by calling the entry's `cmd` - a
+new CLI command, `filtermusicartworkscreensaver`, registered alongside the main menu. It fetches
+`https://filtermusic.net/wallpapers.json` (the same feed the long-removed Material Skin background-photo
+feature, 1.1.0-1.5.0, once used) and responds with `{ data: [ {image, caption}, ... ] }`, the shape
+`ImageSourceServer.lua` expects.
+
+This only affects Jivelite-based players (Squeezebox Touch/Radio, SqueezePlay) - it has no effect on
+Material Skin or the Default web skin, which don't have a screensaver Image Viewer. Toggling the setting
+re-registers the menu entry immediately (`Slim::Control::Jive::registerPluginMenu` is idempotent by
+`id`, so this replaces rather than duplicates it), which newly-connecting players pick up right away; an
+already-connected player may still need to reconnect to see the change, since the server doesn't push a
+live update to its home menu on a pref change. No existing LMS plugin uses this screensaver mechanism, so
+it's untested outside this plugin - if the new source doesn't appear on a player's screensaver settings
+after reconnecting it, that's the first thing to check.
 
 ## Known issues
 

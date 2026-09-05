@@ -45,6 +45,14 @@ package Plugins::FilterMusicDev::Plugin;
 #    menu is reused rather than rebuilt from scratch. The only state   #
 #    kept beyond the TTL window is the last successful result, used as #
 #    a fallback if a fetch or parse ever fails.                        #
+#  - Screensaver Image Viewer source: when enabled in Settings, the    #
+#    plugin's own top-level Jive menu entry gets a `screensavers` key  #
+#    added (see initJive) - a real, generic mechanism client firmware  #
+#    (Jivelite's SlimMenusApplet.lua) uses to offer that entry's `cmd` #
+#    as a selectable "Server" source for the screensaver Image Viewer  #
+#    (Jivelite's ImageSourceServer.lua). No existing LMS plugin uses   #
+#    this, so it was confirmed by reading ralph-irving/jivelite's own  #
+#    source rather than copied from precedent.                        #
 #########################################################################
 
 use strict;
@@ -54,15 +62,22 @@ use base qw(Slim::Plugin::OPMLBased);
 
 use JSON::XS::VersionOneAndTwo;
 
+use Slim::Control::Jive;
+use Slim::Control::Request;
 use Slim::Networking::SimpleAsyncHTTP;
 use Slim::Utils::Log;
+use Slim::Utils::Prefs;
 use Slim::Utils::Strings qw(cstring);
 
 use Plugins::FilterMusicDev::Settings;
 
-use constant FEED_URL   => 'https://filtermusic.net/stations.json';
-use constant USER_AGENT => 'FilterMusicDev-LMS-Plugin/2.0 (+https://github.com/d5c0d3/filtermusic_sb)';
-use constant CACHE_TTL  => 300; # seconds
+use constant FEED_URL              => 'https://filtermusic.net/stations.json';
+use constant WALLPAPER_JSON_URL    => 'https://filtermusic.net/wallpapers.json';
+use constant WALLPAPER_BASE_URL    => 'https://filtermusic.github.io/wallpaper/';
+use constant USER_AGENT            => 'FilterMusicDev-LMS-Plugin/2.0 (+https://github.com/d5c0d3/filtermusic_sb)';
+use constant CACHE_TTL             => 300; # seconds
+use constant SCREENSAVER_CACHE_TTL => 300; # seconds
+use constant SCREENSAVER_CLI_CMD   => 'filtermusicdevartworkscreensaver';
 
 my $log = Slim::Utils::Log->addLogCategory({
 	'category'     => 'plugin.filtermusicdev',
@@ -70,9 +85,48 @@ my $log = Slim::Utils::Log->addLogCategory({
 	'description'  => getDisplayName(),
 });
 
+my $prefs = preferences('plugin.filtermusicdev');
+
+# the args initPlugin registers the menu with - kept so a pref change can
+# rebuild and re-register the same Jive menu entry (see _updateJiveMenu)
+my %pluginArgs = (
+	feed   => \&toplevel,
+	tag    => 'filtermusicdev',
+	menu   => 'radios',
+	is_app => 0,
+	weight => 10,
+);
+
 my $lastGoodMenu;
 my $lastFetchTime  = 0;
 my $lastGenerated;
+
+my $lastGoodScreensaverImages;
+my $lastScreensaverFetchTime = 0;
+
+# wallpapers.json's 'body'/'title' credit text is HTML, e.g. "Die Schlange
+# des B. by&nbsp;Nicola Napoli" - decode the handful of entities that
+# actually turn up in it rather than pulling in an HTML::Entities dependency
+# for this alone.
+my %ENTITIES = (
+	'amp'   => '&',  'nbsp'  => ' ',  'quot'  => '"',  'apos'  => "'",
+	'lt'    => '<',  'gt'    => '>',
+	'rsquo' => "\x{2019}", 'lsquo' => "\x{2018}",
+	'rdquo' => "\x{201D}", 'ldquo' => "\x{201C}",
+	'mdash' => "\x{2014}", 'ndash' => "\x{2013}",
+);
+
+sub _decodeEntities {
+	my ($str) = @_;
+	return '' unless defined $str;
+	$str =~ s/&(#(\d+)|#x([0-9a-fA-F]+)|(\w+));/
+		defined $2 ? chr($2)
+		: defined $3 ? chr(hex($3))
+		: exists $ENTITIES{$4} ? $ENTITIES{$4}
+		: "&$4;"
+	/ge;
+	return $str;
+}
 
 sub getDisplayName { 'PLUGIN_FILTERMUSICDEV' }
 
@@ -88,13 +142,51 @@ sub initPlugin {
 	# the menu icon itself comes from install.xml's <icon> - Slim::Plugin::OPMLBased
 	# does not read an 'icon' key from initPlugin's args, it only ever calls
 	# $class->_pluginDataFor('icon'), which is sourced from install.xml
-	$class->SUPER::initPlugin(
-		feed   => \&toplevel,
-		tag    => 'filtermusicdev',
-		menu   => 'radios',
-		is_app => 0,
-		weight => 10,
+	$class->SUPER::initPlugin(%pluginArgs);
+
+	Slim::Control::Request::addDispatch(
+		[ SCREENSAVER_CLI_CMD ],
+		[ 1, 1, 0, \&_artworkScreensaverImages ]
 	);
+
+	# registerPluginMenu (called by SUPER::initPlugin above, via initJive) only
+	# runs once at startup - re-run it whenever the toggle changes so a running
+	# server picks up the new screensavers field without a restart
+	$prefs->setChange(sub { $class->_updateJiveMenu }, 'showInImageViewer');
+}
+
+# Rebuild and re-register this plugin's top-level Jive menu entry, e.g. after
+# the showInImageViewer pref changes. Slim::Control::Jive::registerPluginMenu
+# replaces any existing entry with the same 'id' rather than duplicating it.
+sub _updateJiveMenu {
+	my $class = shift;
+
+	if (my $menu = $class->initJive(%pluginArgs)) {
+		Slim::Control::Jive::registerPluginMenu($menu);
+	}
+}
+
+# Slim::Plugin::OPMLBased::initJive builds this plugin's top-level Jive menu
+# entry; add a 'screensavers' field to it when the Settings toggle is on, so
+# Jivelite's SlimMenusApplet.lua offers this as a screensaver Image Viewer
+# source (see ImageSourceServer.lua / _artworkScreensaverImages below).
+sub initJive {
+	my ($class, %args) = @_;
+
+	my $menu = $class->SUPER::initJive(%args);
+
+	if ($menu && @$menu && $prefs->get('showInImageViewer')) {
+		$menu->[0]{screensavers} = [{
+			# already-resolved text, not a stringToken - Jivelite's
+			# ScreenSaversApplet.lua displays screensavers[].text verbatim,
+			# it does not run it through the client's own string lookup the
+			# way the top-level menu's own stringToken/text pair does
+			text => cstring(undef, 'PLUGIN_FILTERMUSICDEV_SCREENSAVER'),
+			cmd  => [ SCREENSAVER_CLI_CMD ],
+		}];
+	}
+
+	return $menu;
 }
 
 # this is called every time the user browses into the menu
@@ -255,6 +347,88 @@ sub _buildMenu {
 	}
 
 	return \@menu;
+}
+
+# CLI handler for the 'filtermusicdevartworkscreensaver' command registered
+# in initPlugin. Responds with the flat { data => [ {image, caption}, ... ] }
+# shape Jivelite's ImageSourceServer.lua expects from a screensaver "Server"
+# image source (confirmed against its imgFilesSink, which reads
+# chunk.data.data as an array of {image, caption, date, owner}).
+sub _artworkScreensaverImages {
+	my $request = shift;
+
+	if ($lastGoodScreensaverImages && (time() - $lastScreensaverFetchTime) < SCREENSAVER_CACHE_TTL) {
+		$log->debug('serving cached FilterMusic screensaver image list (< ' . SCREENSAVER_CACHE_TTL . 's old)');
+		$request->addResult('data', $lastGoodScreensaverImages);
+		$request->setStatusDone();
+		return;
+	}
+
+	Slim::Networking::SimpleAsyncHTTP->new(
+		sub {
+			my $http = shift;
+
+			my $images = eval { _buildScreensaverImages($http->content) };
+
+			if ($@ || !$images) {
+				$log->error('failed to parse wallpapers.json for screensaver: ' . ($@ || 'malformed JSON'));
+				$images = $lastGoodScreensaverImages || [];
+			} else {
+				$lastGoodScreensaverImages = $images;
+				$lastScreensaverFetchTime  = time();
+			}
+
+			$request->addResult('data', $images);
+			$request->setStatusDone();
+		},
+
+		sub {
+			my ($http, $error) = @_;
+			$log->error("error fetching filtermusic.net wallpapers.json for screensaver: $error");
+			$request->addResult('data', $lastGoodScreensaverImages || []);
+			$request->setStatusDone();
+		},
+
+		{ timeout => 15 },
+	)->get(WALLPAPER_JSON_URL, 'User-Agent' => USER_AGENT);
+
+	$request->setStatusProcessing() unless $request->isStatusDone();
+}
+
+# Decode wallpapers.json and turn it into the flat {image, caption} array
+# _artworkScreensaverImages responds with. Feed shape: [ { title, body,
+# field_wallpaper }, ... ] - body is either an HTML string or the JSON
+# boolean false when there's no credit; entries without a field_wallpaper
+# are skipped.
+sub _buildScreensaverImages {
+	my ($content) = @_;
+
+	my $wallpapers = decode_json($content);
+
+	die "wallpapers feed is not a JSON array\n" unless ref $wallpapers eq 'ARRAY';
+	die "wallpapers feed is empty\n" unless @$wallpapers;
+
+	my @images;
+
+	for my $entry (@$wallpapers) {
+		next unless ref $entry eq 'HASH' && length $entry->{field_wallpaper};
+
+		my $title = $entry->{title} || $entry->{field_wallpaper};
+
+		# body is a JSON boolean false, not a string, when there's no credit
+		my $credit = $entry->{body} ? $entry->{body} : ($entry->{title} || '');
+		$credit =~ s/<[^>]+>//g;
+		$credit =~ s/\s+/ /g;
+		$credit =~ s/^\s+|\s+$//g;
+		$credit = _decodeEntities($credit);
+
+		push @images, {
+			image   => WALLPAPER_BASE_URL . $entry->{field_wallpaper},
+			caption => length($credit) ? $credit : $title,
+		};
+	}
+
+	return \@images;
 }
 
 1;

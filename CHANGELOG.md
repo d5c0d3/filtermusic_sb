@@ -2,6 +2,29 @@
 
 ## Unreleased
 
+**Added an optional screensaver Image Viewer source, decoupled from the station menu entirely.**
+Following the Artwork-menu revert above, a new "FilterMusic Screensaver" toggle in Settings offers
+filtermusic.net's wallpapers.json feed as a selectable "Server" source for the screensaver Image Viewer
+on Jivelite-based players (Squeezebox Touch/Radio, SqueezePlay) - sidestepping every conflict above by
+never putting artwork into the station browse tree at all:
+
+- `Plugin.pm`'s `initJive` now overrides `Slim::Plugin::OPMLBased::initJive` to add a `screensavers`
+  field to the plugin's own top-level Jive menu entry when the toggle is on. Confirmed against
+  `ralph-irving/jivelite` source: `applets/SlimMenus/SlimMenusApplet.lua` watches every top-level
+  home-menu item for this field and registers each entry as a screensaver automatically, via
+  `appletManager:callService("registerRemoteScreensaver", ...)` - a real, generic mechanism with no
+  existing LMS plugin using it (it looks like a vestige of the discontinued SqueezeNetwork cloud photo
+  apps).
+- A new CLI command, `filtermusicartworkscreensaver`, fetches wallpapers.json and responds with
+  `{ data: [ {image, caption}, ... ] }`, the shape `applets/ImageViewer/ImageSourceServer.lua`'s
+  `imgFilesSink` expects (`chunk.data.data`, an array of `{image, caption, date, owner}`) - the same
+  per-entry shape core LMS's own `slideshow`-flag response format uses in
+  `Slim::Control::XMLBrowser.pm`.
+- Toggling the setting calls `Slim::Control::Jive::registerPluginMenu` again immediately (confirmed
+  idempotent by `id` - it replaces rather than duplicates the existing entry), so a running server picks
+  up the change without restarting; an already-connected player may still need to reconnect to see it,
+  since the server doesn't push a live update to a connected player's home menu on a pref change.
+
 **Reverted the in-tree "Artwork" browse menu (2.3.0-2.4.1).** Browsing filtermusic.net's wallpapers.json
 feed as a menu item, full-screen viewing, and a "Browse Original" source link were added, tested, and
 then removed after hitting structural conflicts confirmed against real `LMS-Community/slimserver` and
