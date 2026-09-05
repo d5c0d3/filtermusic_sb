@@ -40,40 +40,39 @@ https://d5c0d3.github.io/filtermusic_sb/repo.xml
 
 The FilterMusic plugin will then appear in the plugin list to install.
 
-### Testing a branch (dev build)
+### Testing a branch
 
-To try out a branch's code on a real LMS server without touching the installed FilterMusic plugin or
-its config, install it as a second, separately-named plugin that runs fully independently:
+To try out a branch's code on a personal/non-production LMS server, point its Additional Repositories
+entry at that branch's own `repo.xml` instead of the production URL:
 
-1. Duplicate `FilterMusic/` into `FilterMusicDev/`, renaming every identifying piece so it can never
-   collide with the real plugin: the Perl package (`Plugins::FilterMusicDev::Plugin`/`::Settings`), the
-   OPML `tag`, the `Slim::Utils::Prefs` namespace, the log category, every string key in `strings.txt`
-   (and the display name/description text itself, e.g. "FilterMusic (Dev)"), and the `install.xml`
-   `<name>`/`<module>`/paths. Nothing under `FilterMusicDev/` should read `FilterMusic` anywhere it
-   matters functionally.
-2. Zip it up (`FilterMusicDev_<version>.zip`, same layout convention as the real release zips below) and
-   commit it, along with a small standalone `repo-dev.xml` (not the real `repo.xml`) with one `<plugin>`
-   entry for `FilterMusicDev`, its `<url>` pointing at that zip via
-   `https://raw.githubusercontent.com/d5c0d3/filtermusic_sb/<branch>/FilterMusicDev_<version>.zip` -
-   GitHub Pages only serves `repo.xml` from the default branch, so a branch under test needs raw content
-   instead.
-3. In LMS, add a *second* Additional Repositories entry (alongside the real one) pointing at that
-   branch's `repo-dev.xml`, also via `raw.githubusercontent.com`. "FilterMusic (Dev)" then appears in
-   the plugin list to install/update independently.
+```
+https://raw.githubusercontent.com/d5c0d3/filtermusic_sb/<branch>/repo.xml
+```
+
+GitHub Pages only ever serves `repo.xml` from the default branch, so a branch under test needs raw
+content instead - the file itself is identical either way, just fetched from a different location.
 
 Two gotchas worth knowing up front:
 
 - **LMS decides whether an update is offered by comparing the `<version>` string, not the zip's
-  content.** `FilterMusicDev`'s version has to be bumped on every rebuild pushed to the branch (its own
-  independent numbering, e.g. `2.2.0.1` → `2.2.0.2` - unrelated to `FilterMusic/install.xml`'s real,
-  eventual release version), or LMS won't notice a new build is even available.
+  content.** Bump `FilterMusic/install.xml`'s (and `repo.xml`'s matching) `<version>` on every rebuild
+  pushed to the branch, or LMS won't notice a new build is even available.
 - **Both GitHub's raw-content CDN and LMS's own repository-list cache can serve a stale copy** even
-  after that version bump. If "FilterMusic (Dev)" doesn't show the new version, append a cache-busting
-  query string to the Additional Repositories URL (e.g. `?v=<anything-new>`) to force a fresh fetch
-  before assuming something is actually broken.
+  after that version bump. If the plugin list doesn't show the new version, append a cache-busting query
+  string to the Additional Repositories URL (e.g. `?v=<anything-new>`) to force a fresh fetch before
+  assuming something is actually broken.
 
-When done testing, uninstall "FilterMusic (Dev)" and remove its Additional Repositories entry - the real
-FilterMusic install is never touched by any of this.
+**Never configure both the production `repo.xml` and a branch's `repo.xml` as Additional Repositories at
+the same time.** Both advertise the same plugin name (`FilterMusic`), and LMS's own repository-merging
+logic (`Slim::Plugin::Extensions::Plugin::findUpdates`) doesn't keep them as separate, independently
+installable channels - it aggregates every configured repository into one list and, per plugin name,
+silently keeps whichever entry has the *highest* version number, regardless of which repo it came from.
+A branch build numbered higher than the current release would get offered as *the* update even to someone
+who only meant to stay on the stable feed. Switch the one Additional Repositories entry between the
+branch's URL and the production URL rather than adding a second one.
+
+When done testing, switch the Additional Repositories entry back to the production URL above and
+reinstall the released version.
 
 ## Requirements
 

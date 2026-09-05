@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+**Dropped the `FilterMusicDev`/`repo-dev.xml` dev-testing convention.** It existed so a branch's build
+could be installed and compared side-by-side with the real, currently-installed FilterMusic - the only
+way to do that under LMS's plugin manager, since `Slim::Plugin::Extensions::Plugin::findUpdates` merges
+every configured Additional Repositories feed into one list and, per plugin name, keeps only whichever
+entry has the highest version (no channel/source distinction). In practice, testing happens on a
+personal/non-production LMS instance with only one Additional Repositories entry configured at a time,
+so that version-collision problem never actually arises - the separately-named mirror was pure upkeep
+(every change hand-duplicated into a renamed copy) for a scenario that doesn't occur here. Testing a
+branch now just means pointing that one Additional Repositories entry at the branch's own `repo.xml`
+(raw GitHub URL) instead of the production one - see README.md's "Testing a branch" section.
+
 ## 2.3.0 (2026-09-05)
 
 **Added an optional screensaver Image Viewer source, decoupled from the station menu entirely.**
