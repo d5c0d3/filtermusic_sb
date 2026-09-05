@@ -4,14 +4,14 @@
 		<title lang="EN">d5c0d3 plug-in repository (dev)</title>
 	</details>
 	<plugins>
-		<plugin name="FilterMusicDev" version="2.4.1.1" minTarget="8.0" maxTarget="9.*">
+		<plugin name="FilterMusicDev" version="2.2.0.2" minTarget="8.0" maxTarget="9.*">
 			<title lang="EN">FilterMusic (Dev)</title>
 			<desc lang="EN">Dev/test build of the FilterMusic plugin - not for real use.</desc>
 			<creator>d5c0d3</creator>
 			<category>radio</category>
-			<url>https://raw.githubusercontent.com/d5c0d3/filtermusic_sb/claude/friendly-feynman-7cfpz7/FilterMusicDev_2_4_1_1.zip</url>
+			<url>https://raw.githubusercontent.com/d5c0d3/filtermusic_sb/claude/station-logos-metadata-rbziot/FilterMusicDev_2_2_0_2.zip</url>
 			<link>https://github.com/d5c0d3/filtermusic_sb/issues</link>
-			<sha>79ec779516aef1f9a08d4057ec502e91f68ace99</sha>
+			<sha>5d4e0f05b02472b6e77f39bae132d536b630e1b2</sha>
 		</plugin>
     </plugins>
 </extensions>

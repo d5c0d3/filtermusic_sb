@@ -16,10 +16,6 @@ GitHub Pages serves at <https://d5c0d3.github.io/filtermusic_sb/repo.xml>.
 - **Direct playback** - each station plays straight from the stream URL filtermusic.net already lists;
   no extra per-station page fetch.
 - **Station artwork and descriptions** for every entry, read straight from filtermusic.net's own feed.
-- **Browse artwork with artist credits** - a separate "Artwork" menu item lists the images featured on
-  filtermusic.net, each paired with its artist/photographer credit. Selecting one shows it full-screen
-  (on clients that support it); its "more" screen offers a **Browse Original** link back to the source
-  page when the entry links to one. See "How it works" below.
 - **Add to Favorites** shortcut from the Settings page, for pinning FilterMusic to your Favorites menu.
 - **Resilient to filtermusic.net being down or changing**: if a visit's fetch fails, or the feed's
   format changes enough to break parsing, the plugin falls back to the last successful load instead of
@@ -102,52 +98,6 @@ at all, since the whole subtree is already in the response for the top-level men
 beyond the cache window is the last successful result, used as a fallback if a fetch or parse ever
 fails.
 
-Once the station menu is built, the plugin also fetches `https://filtermusic.net/wallpapers.json` and
-appends an "Artwork" node to the menu from it - `_fetchArtwork`/`_buildArtworkMenu` in `Plugin.pm`. This
-is the same feed the Material Skin background-photo feature (added 1.1.0, removed 1.5.0) used to pick an
-invisible backdrop image; here each entry is instead shown as a browsable item pairing the image with
-its artist/photographer credit:
-
-```
-[ { title, body, field_wallpaper } ]
-```
-
-`field_wallpaper` is a filename appended to `https://filtermusic.github.io/wallpaper/` for the image
-URL; the credit shown is `body` (HTML, stripped and entity-decoded) when present, or `title` otherwise -
-`body` comes back as the JSON boolean `false`, not an empty string, on entries with no credit.
-
-Unlike `stations.json`, wallpapers.json has no `generated` timestamp to check as a whole, so
-`_buildArtworkMenu` detects change per entry instead: `%lastArtworkByKey` remembers each entry's
-title/credit text keyed by its `field_wallpaper` filename (the closest thing this feed has to a stable
-id), and an entry whose text is unchanged since the last fetch reuses the item already built for it
-rather than re-stripping/re-decoding the same text again. This doesn't shrink the fetch itself -
-wallpapers.json is one flat array with no way to request only the changed entries - it only avoids
-redundant per-entry rebuild work. A failure to fetch or parse wallpapers.json falls back to the last
-known good Artwork node if one exists, the same "keep the last known good result" fallback the station
-menu uses; it never blocks or breaks station browsing either way.
-
-Each Artwork item's own `name` embeds its credit as a second line (`"$title\n$credit"`) whenever the
-credit says something the title doesn't - Material Skin (see below) renders this as two lines in both
-its list rows and its native fullscreen caption.
-
-Each item also carries a `jive` block (`_buildArtworkItem`) whose only job is a "more" screen - selecting
-the item itself is left alone (see "Known issues" for why). That "more" screen shows the title/credit, a
-**Show Artwork** entry (`actions.do` targets LMS's own stock `artwork` command, plus
-`showBigArtwork => 1` - the same mechanism `Slim::Menu::TrackInfo`/`AlbumInfo` use, but placed on this
-secondary item exactly like those two core precedents do, never on the primary row - see "Known issues"),
-and, when the raw `body` contains a source `<a href="...">`, a **Browse Original** link to it. That
-"more" screen is powered by a small CLI command this plugin registers itself
-(`Slim::Control::Request::addDispatch` in `initPlugin`, `filtermusicartworkinfo` /
-`filtermusicdevartworkinfo` per plugin so the two don't collide when both are installed) - `_artworkInfo`
-bridges the dispatch's `$request`-based calling convention into a normal feed sub via
-`Slim::Control::XMLBrowser::cliQuery`, the same pattern `Slim::Plugin::Podcast::Plugin::showInfo` uses;
-`_artworkInfoFeed` builds the actual content. The **Browse Original** link is only offered when
-`Slim::Utils::Misc::canFollowWeblinks($client)` is true for whichever client requested that "more"
-screen - real Squeezebox hardware (talking SlimProto, not HTTP) never sets a `controllerUA` and so never
-gets a dead link; it sees the plain source URL as text instead. That check runs fresh every time "more"
-is pressed, not baked into the shared, cached top-level menu, since the same cached menu can otherwise
-be served to different clients within the `CACHE_TTL` window.
-
 Because this depends on the feed's current shape, a breaking change to it can break parsing. If
 browsing FilterMusic in LMS starts showing an empty menu or a "could not read the station list" error,
 check `FilterMusic/Plugin.pm`'s `_decodeFeed`/`_buildMenu` against the feed's current shape first.
@@ -168,33 +118,6 @@ install (working) side by side. (The literally-named **"Classic"** skin is a sep
 regardless of LMS version or image format: it has no `xmlbrowser.html` of its own and falls back to
 LMS's bare legacy template, which never shows artwork for `type => 'audio'` items at all.)
 
-**Selecting an Artwork item does nothing on its own, by design - fullscreen lives one level down, in
-"more".** Earlier (2.4.0) it set `jive.showBigArtwork` directly on the primary item, since that's the
-pattern most third-party plugins (e.g. `MusicArtistInfo`) reach for. That broke Material Skin outright:
-`Slim::Control::XMLBrowser.pm` hoists `jive.showBigArtwork` onto every JSON-RPC/CLI client's top-level
-response, and Material's own `browse-resp.js` (confirmed by reading it directly) unconditionally drops
-any item carrying it - emptying the whole Artwork list in Material, while Material's *own* native
-gallery viewer already gave a perfectly good fullscreen+next/prev experience for a plain item list with
-no flags at all. Real core LMS never puts `showBigArtwork` on a primary row either -
-`Slim::Menu::TrackInfo`/`AlbumInfo` push a dedicated "Show Artwork" item into that track/album's own info
-menu - so 2.4.1 does the same: the primary item just shows/opens normally per-client (a plain image in
-the Default web skin, Material's own native viewer), and "Show Artwork" lives in the "more" screen for
-Jive/app clients that need an explicit action for it.
-
-**Default web skin's fullscreen view has no caption, deliberately.** The only way to add one there is
-`Ext.ux.Lightbox` (triggered by `type => 'slideshow'` on the Artwork container) - confirmed it *would*
-show a title from the clicked image's own markup, but also confirmed (by tracing Material's
-`browseBuildCommand`) that enabling it would make Material request an alternate, flattened response shape
-its `parseBrowseResp` can't parse at all, re-breaking Material's list via a different mechanism than the
-one just fixed. Not worth it for a caption - Default's fullscreen stays a plain new-tab image view.
-
-**SqueezePlay/Jive's `showBigArtwork` screen has no confirmed caption support**, and its actual
-client-side rendering isn't independently verified from this repo (SqueezePlay/Jivelite firmware source
-isn't available to check) - the server-side contract (`showBigArtwork` plus LMS's own `artwork` CLI
-command) is real, confirmed straight from `LMS-Community/slimserver`'s source, and does open something,
-but neither a title/credit caption nor the exact screen it paints is something this repository's source
-can confirm.
-
 ## History
 
 The original 0.2 release (2011) scraped an older, jQuery-accordion version of the site using
@@ -207,14 +130,8 @@ filtermusic.net markup. Version 2.0.0 consolidates a run of small follow-up rele
 (and then removed, after it turned out unworkable in practice) an optional Material Skin background
 photo, and simplified the caching approach down to a fresh fetch on every visit. Version 2.2.0 moved
 off homepage-markup scraping entirely onto a `stations.json` feed filtermusic.net now publishes for
-this plugin, and added the lightweight in-memory cache described above. Version 2.3.0 revisited the
-Material Skin background photo's old `wallpapers.json` data source, this time surfacing it as a
-browsable Artwork menu item with artist credit rather than an invisible backdrop. Version 2.4.0 made
-Artwork items interactive: full-screen viewing and a "Browse Original" link back to an entry's source,
-where its credit links to one - fullscreen came at the cost of a regression, fixed in 2.4.1, which
-emptied the whole list in Material Skin; 2.4.1 also moved fullscreen into the "more" screen (matching
-real core LMS convention) and started showing title+credit together. See `CHANGELOG.md` for the full
-detail.
+this plugin, and added the lightweight in-memory cache described above. See `CHANGELOG.md` for the
+full detail.
 
 ## Credits
 
