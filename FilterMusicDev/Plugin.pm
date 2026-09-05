@@ -429,17 +429,22 @@ sub _buildScreensaverImages {
 		# filtermusic.github.io falls through to its "url on current server"
 		# branch, which mangles it by prepending the LMS server's own
 		# http://<ip>:<port>/ in front of it. Routing through LMS's own
-		# /imageproxy/ (Slim::Web::ImageProxy.pm) instead gives it a
+		# imageproxy/ (Slim::Web::ImageProxy.pm) instead gives it a
 		# server-relative path that branch handles correctly - and even a
 		# plain http:// external URL would otherwise hit ImageSourceServer's
 		# third branch, LMS's now-decommissioned SqueezeNetworks image proxy.
+		# NOTE: no leading '/' here - that branch does
+		# "http://" .. ip .. ":" .. port .. "/" .. urlString, so a leading
+		# slash on our end produces a doubled "//" that Slim::Web::Graphics.pm
+		# never matches as an imageproxy path (confirmed via a real
+		# SqueezePlay debug log showing exactly that doubled slash).
 		# The literal '{resizeParams}' token is ImageSourceServer's own
 		# placeholder - it substitutes real dimensions into it before
 		# fetching, which Slim::Web::Graphics.pm's spec parser reads as a
 		# real resize spec (not just a bare extension), taking imageproxy's
 		# normal fetch+resize path rather than its bare-extension redirect
 		# shortcut.
-		my $proxiedImage = '/imageproxy/' . uri_escape_utf8(WALLPAPER_BASE_URL . $entry->{field_wallpaper})
+		my $proxiedImage = 'imageproxy/' . uri_escape_utf8(WALLPAPER_BASE_URL . $entry->{field_wallpaper})
 			. '/image{resizeParams}.png';
 
 		push @images, {

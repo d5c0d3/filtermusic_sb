@@ -32,12 +32,19 @@ never putting artwork into the station browse tree at all:
   "url on current server" branch instead, which prepended the LMS server's own `http://<ip>:<port>/` in
   front of them, producing a URL that could never resolve. (A plain `http://` URL would have fared no
   better - it would have hit that Lua file's third branch, LMS's own long-decommissioned SqueezeNetwork
-  image proxy.) Fixed by routing each image through LMS's own `/imageproxy/` (`Slim::Web::ImageProxy.pm`)
+  image proxy.) Fixed by routing each image through LMS's own `imageproxy/` (`Slim::Web::ImageProxy.pm`)
   instead, with the literal `{resizeParams}` placeholder `ImageSourceServer.lua` looks for baked into the
   path so it substitutes real dimensions before fetching - confirmed against
   `Slim::Web::Graphics.pm`'s spec-parsing regex that this produces a real resize spec rather than
   tripping `Slim::Web::ImageProxy.pm`'s bare-extension redirect shortcut (not guaranteed to be followed
   by Jivelite's own HTTP client).
+  - Follow-up, found from a real SqueezePlay debug log after the above still failed: that same
+    "url on current server" branch does `"http://" .. ip .. ":" .. port .. "/" .. urlString` - it
+    already appends its own `/` separator, so a `imageproxy/...` path with a **leading** slash produced
+    a doubled `//` (`http://192.168.1.x:9000//imageproxy/...`) that `Slim::Web::Graphics.pm`'s
+    `^imageproxy/` route never matched. Dropped the leading slash - confirmed against the server's own
+    log for a real working case (a station's WebP logo conversion), which shows the identical
+    `imageproxy/https://...` shape with no leading slash.
 
 **Reverted the in-tree "Artwork" browse menu (2.3.0-2.4.1).** Browsing filtermusic.net's wallpapers.json
 feed as a menu item, full-screen viewing, and a "Browse Original" source link were added, tested, and
