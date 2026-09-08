@@ -1,1 +1,2 @@
-theme: jekyll-theme-time-machine
+# Disable Jekyll processing - we're serving static HTML directly
+# This prevents GitHub Pages from trying to process the site as a Jekyll project

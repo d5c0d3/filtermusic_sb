@@ -1,0 +1,748 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="FilterMusic plugin for Lyrion Music Server - Browse FilterMusic.net radio stations directly from LMS">
+  <title>FilterMusic - LMS Plugin (Preview)</title>
+  <style>
+    @font-face {
+      font-family: "Montserrat";
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: local("Montserrat Medium");
+    }
+
+:root {
+  --font-sans:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+
+  --color-blue: #0079c0;
+  --color-purple: #8d2ba0;
+  --color-black: #000;
+  --color-white: #fff;
+
+  --text-color: #e6e6e6;
+  --card: rgba(0, 0, 0, 0.9);
+
+  --max-width: 520px;
+  --radius: 12px;
+  --gap: 2px;
+
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration: 150ms;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+  background: #000;
+  color-scheme: dark;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  overflow-x: hidden;
+  background: #000;
+  color: var(--text-color);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  border: 0;
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+  transition: opacity var(--duration) var(--ease);
+}
+
+a:hover {
+  opacity: 0.8;
+}
+
+img,
+svg,
+video {
+  display: block;
+  max-width: 100%;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin-top: 0;
+}
+
+h1,
+h2,
+h3 {
+  font-family: "Montserrat", var(--font-sans);
+  font-weight: 500;
+  text-wrap: balance;
+}
+
+h1 {
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+  line-height: 1.33;
+}
+
+h2 {
+  margin-bottom: 1rem;
+  font-size: 1.25rem;
+  line-height: 1.4;
+}
+
+h3 {
+  margin-bottom: 0.75rem;
+  font-size: 1rem;
+  line-height: 1.5;
+  opacity: 0.9;
+}
+
+p {
+  margin-bottom: 1rem;
+}
+
+.text-secondary {
+  font-weight: 300;
+  opacity: 0.6;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+.app {
+  position: relative;
+  min-height: 100vh;
+  isolation: isolate;
+  overflow: hidden;
+  background: #000;
+}
+
+.wrapper {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  padding: 16px;
+}
+
+main {
+  width: min(100%, var(--max-width));
+  margin-inline: auto;
+}
+
+.wallpaper {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  overflow: hidden;
+  transition: opacity 10s ease-in;
+}
+
+.wallpaper-container {
+  position: absolute;
+  inset: 0;
+  background-position: 50%;
+  background-size: cover;
+  background-repeat: no-repeat;
+  transform: scale(1.1);
+  transition: transform 2s ease-out;
+}
+
+.wallpaper-container.loaded {
+  transform: scale(1);
+  transition: transform 10s ease-out;
+}
+
+.wallpaper-cover {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    linear-gradient(
+      120deg,
+      #000 0%,
+      rgba(2, 0, 36, 0.5) 90%
+    );
+  transition: opacity 300ms ease-in-out;
+}
+
+.user-idle .wrapper {
+  visibility: hidden;
+}
+
+.user-idle .wallpaper-cover {
+  opacity: 0;
+  transition: opacity 500ms ease-in-out;
+}
+
+.card {
+  margin-bottom: var(--gap);
+  padding: 16px;
+  background: var(--card);
+}
+
+.card:first-child {
+  border-top-left-radius: var(--radius);
+  border-top-right-radius: var(--radius);
+}
+
+.card:last-child {
+  border-bottom-right-radius: var(--radius);
+  border-bottom-left-radius: var(--radius);
+}
+
+.btn {
+  display: inline-flex;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background-color: transparent;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 24px 24px;
+  opacity: 0.8;
+  transition:
+    opacity var(--duration) var(--ease),
+    background-color var(--duration) var(--ease);
+}
+
+.btn:hover {
+  opacity: 1;
+}
+
+.form-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.form-label {
+  flex: 0 0 auto;
+  font-weight: 500;
+}
+
+.form-input {
+  width: 100%;
+  min-width: 0;
+  padding: 8px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  background: transparent;
+  color: #fff;
+  transition:
+    border-color var(--duration) var(--ease),
+    background-color var(--duration) var(--ease);
+}
+
+.form-input::placeholder {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.form-input:hover,
+.form-input:focus {
+  border-color: #fff;
+}
+
+.form-input:focus {
+  background: #000;
+  outline: none;
+}
+
+.item-list {
+  display: grid;
+  gap: var(--gap);
+}
+
+.item-card {
+  display: flex;
+  min-height: 64px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px;
+  background: var(--card);
+  transition:
+    opacity var(--duration) var(--ease),
+    background-color var(--duration) var(--ease);
+}
+
+.item-card:hover {
+  background: rgba(0, 0, 0, 0.95);
+}
+
+.item-card:first-child {
+  border-top-left-radius: var(--radius);
+  border-top-right-radius: var(--radius);
+}
+
+.item-card:last-child {
+  border-bottom-right-radius: var(--radius);
+  border-bottom-left-radius: var(--radius);
+}
+
+.item-content {
+  min-width: 0;
+}
+
+.item-title {
+  overflow: hidden;
+  font-family: "Montserrat", var(--font-sans);
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.item-description {
+  margin-top: 2px;
+  color: #fff;
+  font-size: 0.875rem;
+  opacity: 0.6;
+}
+
+.disabled {
+  position: relative;
+  pointer-events: none;
+  cursor: not-allowed;
+  filter: blur(4px);
+}
+
+.accordion {
+  background: var(--card);
+  border-radius: var(--radius);
+}
+
+.accordion details {
+  padding: 16px;
+}
+
+.accordion summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  list-style: none;
+}
+
+.accordion summary::-webkit-details-marker {
+  display: none;
+}
+
+.accordion summary::after {
+  content: "";
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") center / 16px 16px no-repeat;
+  opacity: 0.5;
+  transition: transform 300ms var(--ease);
+}
+
+.accordion details[open] summary::after {
+  transform: rotate(180deg);
+}
+
+.accordion-content {
+  padding-top: 16px;
+}
+
+pre {
+  overflow-x: auto;
+  padding: 12px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+code {
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 0.9em;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+pre code {
+  background: transparent;
+  padding: 0;
+}
+
+ol {
+  padding-left: 1.5em;
+  margin-bottom: 1rem;
+}
+
+ol li {
+  margin-bottom: 0.5rem;
+}
+
+ul {
+  padding-left: 1.5em;
+  margin-bottom: 1rem;
+}
+
+ul li {
+  margin-bottom: 0.5rem;
+}
+
+.loader {
+  width: 24px;
+  height: 24px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2z' fill='none' stroke='white' stroke-width='2'/%3E%3C/svg%3E") center / 24px 24px no-repeat;
+  animation: spin 1s linear infinite;
+}
+
+.pulse {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@media (max-width: 767px) {
+  .wrapper {
+    padding: 8px;
+  }
+  h1 {
+    font-size: 1.25rem;
+  }
+  h2 {
+    font-size: 1.125rem;
+  }
+  .card,
+  .content-section,
+  .item-card {
+    padding: 12px;
+  }
+}
+
+@media (max-width: 639px) {
+  .form-row {
+    gap: 8px;
+  }
+  .item-description {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+  </style>
+</head>
+<body>
+
+  <div class="app">
+
+    <!-- Wallpaper - Using a dark gradient as placeholder -->
+    <div class="wallpaper" id="wallpaper" aria-hidden="true">
+      <div class="wallpaper-container loaded" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);"></div>
+      <div class="wallpaper-cover"></div>
+    </div>
+
+    <!-- Content -->
+    <div class="wrapper">
+      <main>
+
+        <!-- Header Card -->
+        <section class="card">
+          <h1>FilterMusic</h1>
+          <p class="text-secondary">
+            Browse FilterMusic.net radio stations from within Lyrion Music Server
+          </p>
+        </section>
+
+        <!-- Features at a Glance -->
+        <section class="card">
+          <h2>Features at a glance</h2>
+
+          <div class="item-list">
+            <article class="item-card">
+              <div class="item-content">
+                <div class="item-title">Browse by genre</div>
+                <div class="item-description">
+                  Organized by FilterMusic.net's own categories (House/Dance, Techno/Trance, Jazz, Rock/Metal, etc.)
+                </div>
+              </div>
+            </article>
+
+            <article class="item-card">
+              <div class="item-content">
+                <div class="item-title">Direct playback</div>
+                <div class="item-description">
+                  Each station plays straight from the stream URL - no extra page fetch
+                </div>
+              </div>
+            </article>
+
+            <article class="item-card">
+              <div class="item-content">
+                <div class="item-title">Station artwork and descriptions</div>
+                <div class="item-description">
+                  For every entry, read directly from FilterMusic.net's feed
+                </div>
+              </div>
+            </article>
+
+            <article class="item-card">
+              <div class="item-content">
+                <div class="item-title">Screensaver Image Viewer source</div>
+                <div class="item-description">
+                  Optional FilterMusic.net artwork as a screensaver source for Jivelite-based players
+                </div>
+              </div>
+            </article>
+
+            <article class="item-card">
+              <div class="item-content">
+                <div class="item-title">Resilient to changes</div>
+                <div class="item-description">
+                  Falls back to last successful load if FilterMusic.net is down or feed format changes
+                </div>
+              </div>
+            </article>
+
+            <article class="item-card">
+              <div class="item-content">
+                <div class="item-title">Lightly cached</div>
+                <div class="item-description">
+                  Successful loads cached for a few minutes to avoid repeated refetches
+                </div>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <!-- Quick Start -->
+        <section class="card">
+          <h2>Quick start</h2>
+          <ol>
+            <li>In LMS: <strong>Settings &rarr; Plugins &rarr; Additional Repositories</strong>, add:
+              <pre><code>https://d5c0d3.github.io/filtermusic_sb/repo.xml</code></pre>
+            </li>
+            <li>Install the <strong>FilterMusic</strong> plugin from the plugin list</li>
+            <li>Restart LMS</li>
+            <li>Browse to <strong>Apps &rarr; FilterMusic</strong> to start exploring stations</li>
+          </ol>
+        </section>
+
+        <!-- Requirements -->
+        <section class="card">
+          <h2>Requirements</h2>
+          <ul>
+            <li><strong>Lyrion Music Server / Logitech Media Server 8.0 or newer</strong></li>
+            <li><strong>Station logos need LMS 9.1.0+</strong> (WebP support via image proxy)</li>
+          </ul>
+        </section>
+
+        <!-- Using It -->
+        <section class="card">
+          <h2>Using it</h2>
+          
+          <h3>Browsing stations</h3>
+          <p>
+            Open <strong>Apps &rarr; FilterMusic</strong> to see the complete genre list.
+            Each genre contains stations curated by FilterMusic.net, with artwork and descriptions.
+            Tap any station to start playing immediately.
+          </p>
+
+          <h3>Genres</h3>
+          <p>
+            Stations are organized into the following categories, matching FilterMusic.net's own structure:
+          </p>
+          <div class="item-list">
+            <article class="item-card">
+              <div class="item-content">
+                <div class="item-title">House/Dance</div>
+              </div>
+            </article>
+            <article class="item-card">
+              <div class="item-content">
+                <div class="item-title">Techno/Trance</div>
+              </div>
+            </article>
+            <article class="item-card">
+              <div class="item-content">
+                <div class="item-title">Electronica/Industrial</div>
+              </div>
+            </article>
+            <article class="item-card">
+              <div class="item-content">
+                <div class="item-title">Breaks/DrumnBass</div>
+              </div>
+            </article>
+            <article class="item-card">
+              <div class="item-content">
+                <div class="item-title">HipHop/Rap</div>
+              </div>
+            </article>
+            <article class="item-card">
+              <div class="item-content">
+                <div class="item-title">Reggae/Dub/Dancehall</div>
+              </div>
+            </article>
+            <article class="item-card">
+              <div class="item-content">
+                <div class="item-title">Funk/Soul/Disco</div>
+              </div>
+            </article>
+            <article class="item-card">
+              <div class="item-content">
+                <div class="item-title">Lounge Grooves</div>
+              </div>
+            </article>
+            <article class="item-card">
+              <div class="item-content">
+                <div class="item-title">Downtempo/Ambient</div>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <!-- Screensaver Feature -->
+        <section class="card">
+          <h2>Screensaver Image Viewer</h2>
+          <p>
+            Enable <strong>FilterMusic Screensaver</strong> in the plugin settings to add
+            FilterMusic.net's artwork as a selectable source for the screensaver Image Viewer
+            on Jivelite-based players (Squeezebox Touch/Radio, SqueezePlay).
+          </p>
+          <p>
+            Each wallpaper includes title and artist/photographer credit when available.
+            Images are served through LMS's own image proxy for compatibility.
+          </p>
+        </section>
+
+        <!-- Settings Reference -->
+        <section class="card">
+          <h2>Settings reference</h2>
+          <p>
+            Open <strong>Settings &rarr; Advanced &rarr; FilterMusic</strong> to configure:
+          </p>
+          <div class="item-list">
+            <article class="item-card">
+              <div class="item-content">
+                <div class="item-title">Show in Image Viewer</div>
+                <div class="item-description">
+                  Enable/disable the FilterMusic screensaver source
+                </div>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <!-- Notes & Limitations -->
+        <section class="card">
+          <h2>Notes & limitations</h2>
+          <p>
+            <strong>Station logos need LMS 9.1.0 or newer.</strong> The feed's logo URLs are WebP.
+            LMS's artwork resizer can't decode WebP on versions older than 9.1.0.
+            Upgrade your LMS/Lyrion server to resolve this.
+          </p>
+          <p>
+            <strong>Classic skin limitation:</strong> The literally-named "Classic" skin has no
+            artwork support for audio items, regardless of LMS version or image format.
+          </p>
+        </section>
+
+        <!-- Credits -->
+        <section class="card">
+          <h2>Credits</h2>
+          <p>
+            FilterMusic.net is created and curated by <strong>Spyros</strong>.
+            Every station, genre, and image this plugin displays is their work.
+            When contacted about reviving the plugin, they offered immediately to help
+            and built a data feed for it.
+          </p>
+          <p class="text-secondary">
+            Thank you, Spyros.
+          </p>
+        </section>
+
+        <!-- License -->
+        <section class="card">
+          <h2>License</h2>
+          <p>
+            MIT - see <a href="LICENSE">LICENSE</a>.
+            That covers this plugin's own code; the station data and artwork it reads
+            from FilterMusic.net remain FilterMusic.net's own content.
+          </p>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- Preview notice -->
+  <div style="position: fixed; bottom: 16px; right: 16px; background: rgba(0,0,0,0.8); padding: 12px 16px; border-radius: 8px; font-size: 12px; opacity: 0.7; z-index: 9999;">
+    Preview Mode - Dark gradient wallpaper placeholder
+  </div>
+
+</body>
+</html>

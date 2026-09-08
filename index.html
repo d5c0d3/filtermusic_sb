@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="FilterMusic plugin for Lyrion Music Server - Browse FilterMusic.net radio stations directly from LMS">
+  <title>FilterMusic - LMS Plugin</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <div class="app">
+
+    <!-- Wallpaper -->
+    <div class="wallpaper" id="wallpaper" aria-hidden="true">
+      <div class="wallpaper-container loaded" style="background-image: url('/filtermusic_sb/assets/wallpaper.jpg');"></div>
+      <div class="wallpaper-cover"></div>
+    </div>
+
+    <!-- Content -->
+    <div class="wrapper">
+      <main>
+
+        <!-- Header Card -->
+        <section class="card">
+          <h1>FilterMusic</h1>
+          <p class="text-secondary">
+            Browse FilterMusic.net radio stations from within Lyrion Music Server
+          </p>
+        </section>
+
+        <!-- Features at a Glance -->
+        <section class="card">
+          <h2>Features at a glance</h2>
+
+          <div class="item-list">
+            <article class="item-card">
+              <div class="item-content">
+                <div class="item-title">Browse by genre</div>
+                <div class="item-description">
+                  Organized by FilterMusic.net's own categories (House/Dance, Techno/Trance, Jazz, Rock/Metal, etc.)
+                </div>
+              </div>
+            </article>
+
+            <article class="item-card">
+              <div class="item-content">
+                <div class="item-title">Direct playback</div>
+                <div class="item-description">
+                  Each station plays straight from the stream URL - no extra page fetch
+                </div>
+              </div>
+            </article>
+
+            <article class="item-card">
+              <div class="item-content">
+                <div class="item-title">Station artwork and descriptions</div>
+                <div class="item-description">
+                  For every entry, read directly from FilterMusic.net's feed
+                </div>
+              </div>
+            </article>
+
+            <article class="item-card">
+              <div class="item-content">
+                <div class="item-title">Screensaver Image Viewer source</div>
+                <div class="item-description">
+                  Optional FilterMusic.net artwork as a screensaver source for Jivelite-based players
+                </div>
+              </div>
+            </article>
+
+            <article class="item-card">
+              <div class="item-content">
+                <div class="item-title">Resilient to changes</div>
+                <div class="item-description">
+                  Falls back to last successful load if FilterMusic.net is down or feed format changes
+                </div>
+              </div>
+            </article>
+
+            <article class="item-card">
+              <div class="item-content">
+                <div class="item-title">Lightly cached</div>
+                <div class="item-description">
+                  Successful loads cached for a few minutes to avoid repeated refetches
+                </div>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <!-- Quick Start -->
+        <section class="card">
+          <h2>Quick start</h2>
+          <ol>
+            <li>In LMS: <strong>Settings &rarr; Plugins &rarr; Additional Repositories</strong>, add:
+              <pre><code>https://d5c0d3.github.io/filtermusic_sb/repo.xml</code></pre>
+            </li>
+            <li>Install the <strong>FilterMusic</strong> plugin from the plugin list</li>
+            <li>Restart LMS</li>
+            <li>Browse to <strong>Apps &rarr; FilterMusic</strong> to start exploring stations</li>
+          </ol>
+        </section>
+
+        <!-- Requirements -->
+        <section class="card">
+          <h2>Requirements</h2>
+          <ul>
+            <li><strong>Lyrion Music Server / Logitech Media Server 8.0 or newer</strong></li>
+            <li><strong>Station logos need LMS 9.1.0+</strong> (WebP support via image proxy)</li>
+          </ul>
+        </section>
+
+        <!-- Using It -->
+        <section class="card">
+          <h2>Using it</h2>
+          
+          <h3>Browsing stations</h3>
+          <p>
+            Open <strong>Apps &rarr; FilterMusic</strong> to see the complete genre list.
+            Each genre contains stations curated by FilterMusic.net, with artwork and descriptions.
+            Tap any station to start playing immediately.
+          </p>
+
+          <h3>Genres</h3>
+          <p>
+            Stations are organized into the following categories, matching FilterMusic.net's own structure:
+          </p>
+          <div class="item-list">
+            <article class="item-card">
+              <div class="item-content">
+                <div class="item-title">House/Dance</div>
+              </div>
+            </article>
+            <article class="item-card">
+              <div class="item-content">
+                <div class="item-title">Techno/Trance</div>
+              </div>
+            </article>
+            <article class="item-card">
+              <div class="item-content">
+                <div class="item-title">Electronica/Industrial</div>
+              </div>
+            </article>
+            <article class="item-card">
+              <div class="item-content">
+                <div class="item-title">Breaks/DrumnBass</div>
+              </div>
+            </article>
+            <article class="item-card">
+              <div class="item-content">
+                <div class="item-title">HipHop/Rap</div>
+              </div>
+            </article>
+            <article class="item-card">
+              <div class="item-content">
+                <div class="item-title">Reggae/Dub/Dancehall</div>
+              </div>
+            </article>
+            <article class="item-card">
+              <div class="item-content">
+                <div class="item-title">Funk/Soul/Disco</div>
+              </div>
+            </article>
+            <article class="item-card">
+              <div class="item-content">
+                <div class="item-title">Lounge Grooves</div>
+              </div>
+            </article>
+            <article class="item-card">
+              <div class="item-content">
+                <div class="item-title">Downtempo/Ambient</div>
+              </div>
+            </article>
+            <article class="item-card">
+              <div class="item-content">
+                <div class="item-title">Various/Mainstream</div>
+              </div>
+            </article>
+            <article class="item-card">
+              <div class="item-content">
+                <div class="item-title">60s/70s/80s/90s</div>
+              </div>
+            </article>
+            <article class="item-card">
+              <div class="item-content">
+                <div class="item-title">Classical</div>
+              </div>
+            </article>
+            <article class="item-card">
+              <div class="item-content">
+                <div class="item-title">Jazz</div>
+              </div>
+            </article>
+            <article class="item-card">
+              <div class="item-content">
+                <div class="item-title">Rock/Metal</div>
+              </div>
+            </article>
+            <article class="item-card">
+              <div class="item-content">
+                <div class="item-title">International/Ethnic</div>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <!-- Screensaver Feature -->
+        <section class="card">
+          <h2>Screensaver Image Viewer</h2>
+          <p>
+            Enable <strong>FilterMusic Screensaver</strong> in the plugin settings to add
+            FilterMusic.net's artwork as a selectable source for the screensaver Image Viewer
+            on Jivelite-based players (Squeezebox Touch/Radio, SqueezePlay).
+          </p>
+          <p>
+            Each wallpaper includes title and artist/photographer credit when available.
+            Images are served through LMS's own image proxy for compatibility.
+          </p>
+        </section>
+
+        <!-- Settings Reference -->
+        <section class="card">
+          <h2>Settings reference</h2>
+          <p>
+            Open <strong>Settings &rarr; Advanced &rarr; FilterMusic</strong> to configure:
+          </p>
+          <div class="item-list">
+            <article class="item-card">
+              <div class="item-content">
+                <div class="item-title">Show in Image Viewer</div>
+                <div class="item-description">
+                  Enable/disable the FilterMusic screensaver source
+                </div>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <!-- Notes & Limitations -->
+        <section class="card">
+          <h2>Notes & limitations</h2>
+          <p>
+            <strong>Station logos need LMS 9.1.0 or newer.</strong> The feed's logo URLs are WebP.
+            LMS's artwork resizer can't decode WebP on versions older than 9.1.0.
+            Upgrade your LMS/Lyrion server to resolve this.
+          </p>
+          <p>
+            <strong>Classic skin limitation:</strong> The literally-named "Classic" skin has no
+            artwork support for audio items, regardless of LMS version or image format.
+          </p>
+        </section>
+
+        <!-- Credits -->
+        <section class="card">
+          <h2>Credits</h2>
+          <p>
+            FilterMusic.net is created and curated by <strong>Spyros</strong>.
+            Every station, genre, and image this plugin displays is their work.
+            When contacted about reviving the plugin, they offered immediately to help
+            and built a data feed for it.
+          </p>
+          <p class="text-secondary">
+            Thank you, Spyros.
+          </p>
+        </section>
+
+        <!-- License -->
+        <section class="card">
+          <h2>License</h2>
+          <p>
+            MIT - see <a href="LICENSE">LICENSE</a>.
+            That covers this plugin's own code; the station data and artwork it reads
+            from FilterMusic.net remain FilterMusic.net's own content.
+          </p>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+</body>
+</html>
