@@ -27,3 +27,9 @@ SETUP_PLUGIN_FILTERMUSIC_SCREENSAVER_DESC
 
 PLUGIN_FILTERMUSIC_SCREENSAVER
 	EN	FilterMusic Artwork
+
+SETUP_PLUGIN_FILTERMUSIC_CREDITS
+	EN	Artwork Credits
+
+SETUP_PLUGIN_FILTERMUSIC_CREDITS_DESC
+	EN	The photographers and artists behind the screensaver artwork above. Shown here because most players don't display this by default - see filtermusic.net for more from each of them.

@@ -14,6 +14,16 @@
 		<div class="prefDesc">[% "SETUP_PLUGIN_FILTERMUSIC_SCREENSAVER_DESC" | string %]</div>
 		<input name="pref_showInImageViewer" type="checkbox" [% IF prefs.pref_showInImageViewer %] checked [% END %]>
 
+		[% IF wallpaperCredits.size %]
+			<div class="prefHead">[% "SETUP_PLUGIN_FILTERMUSIC_CREDITS" | string | upper %]</div>
+			<div class="prefDesc">[% "SETUP_PLUGIN_FILTERMUSIC_CREDITS_DESC" | string %]</div>
+			<ul>
+			[% FOREACH c = wallpaperCredits %]
+				<li>[% c.title | html %][% IF c.credit %] &mdash; [% c.credit | html %][% END %]</li>
+			[% END %]
+			</ul>
+		[% END %]
+
 	</div>
 
 [% PROCESS settings/footer.html %]

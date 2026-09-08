@@ -153,6 +153,13 @@ plugin:
 - **Ordering** - sequential or random.
 - **Text info** - shows or hides the caption/credit text this plugin supplies for each image.
 
+**"Text info" is off by default** (`ImageViewerMeta.lua`'s own `defaultSetting`), and there is no way for
+a server-side plugin to read or set it - it's stored in a local file on the player itself, with no
+CLI/JSON-RPC field or protocol hook reaching it at all. So the FilterMusic Settings page itself lists
+every image's title and photographer/artist credit whenever the screensaver toggle is on, refreshed each
+time the page loads - that's the one place credit to each artist is guaranteed visible, regardless of any
+player-side setting.
+
 ## Known issues
 
 **Station logos need LMS 9.1.0 or newer.** The feed's `logo` URLs are WebP. LMS's own artwork resizer

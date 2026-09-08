@@ -3,7 +3,7 @@ package Plugins::FilterMusic::Plugin;
 #########################################################################
 # Plugin: FilterMusic                                                   #
 #                                                                       #
-# Version: 2.3.1                                                       #
+# Version: 2.3.2                                                       #
 #                                                                       #
 # Website: https://filtermusic.net                                     #
 #                                                                       #
@@ -345,18 +345,16 @@ sub _buildMenu {
 	return \@menu;
 }
 
-# CLI handler for the 'filtermusicartworkscreensaver' command registered in
-# initPlugin. Responds with the flat { data => [ {image, caption}, ... ] }
-# shape Jivelite's ImageSourceServer.lua expects from a screensaver "Server"
-# image source (confirmed against its imgFilesSink, which reads
-# chunk.data.data as an array of {image, caption, date, owner}).
-sub _artworkScreensaverImages {
-	my $request = shift;
+# Fetches (or serves from cache) the current wallpapers.json-derived image
+# list, calling $cb->(\@images) once available - shared by the CLI command
+# below and Settings.pm's credits list, so both ever fetch through the same
+# cache rather than each keeping (and refetching against) their own.
+sub _fetchScreensaverImages {
+	my ($cb) = @_;
 
 	if ($lastGoodScreensaverImages && (time() - $lastScreensaverFetchTime) < SCREENSAVER_CACHE_TTL) {
 		$log->debug('serving cached FilterMusic screensaver image list (< ' . SCREENSAVER_CACHE_TTL . 's old)');
-		$request->addResult('data', $lastGoodScreensaverImages);
-		$request->setStatusDone();
+		$cb->($lastGoodScreensaverImages);
 		return;
 	}
 
@@ -374,21 +372,48 @@ sub _artworkScreensaverImages {
 				$lastScreensaverFetchTime  = time();
 			}
 
-			$request->addResult('data', $images);
-			$request->setStatusDone();
+			$cb->($images);
 		},
 
 		sub {
 			my ($http, $error) = @_;
 			$log->error("error fetching filtermusic.net wallpapers.json for screensaver: $error");
-			$request->addResult('data', $lastGoodScreensaverImages || []);
-			$request->setStatusDone();
+			$cb->($lastGoodScreensaverImages || []);
 		},
 
 		{ timeout => 15 },
 	)->get(WALLPAPER_JSON_URL, 'User-Agent' => USER_AGENT);
+}
+
+# CLI handler for the 'filtermusicartworkscreensaver' command registered in
+# initPlugin. Responds with the flat { data => [ {image, caption}, ... ] }
+# shape Jivelite's ImageSourceServer.lua expects from a screensaver "Server"
+# image source (confirmed against its imgFilesSink, which reads
+# chunk.data.data as an array of {image, caption, date, owner}).
+sub _artworkScreensaverImages {
+	my $request = shift;
+
+	_fetchScreensaverImages(sub {
+		my ($images) = @_;
+		$request->addResult('data', $images);
+		$request->setStatusDone();
+	});
 
 	$request->setStatusProcessing() unless $request->isStatusDone();
+}
+
+# Used by Settings.pm to list each image's title/credit on the settings
+# page - the only way to guarantee credits are actually visible, since
+# ImageSourceServer.lua's caption/owner text is gated by a per-player,
+# client-local "Text info" toggle (off by default, confirmed in
+# ImageViewerMeta.lua) with no server-side override.
+sub fetchWallpaperCredits {
+	my ($cb) = @_;
+
+	_fetchScreensaverImages(sub {
+		my ($images) = @_;
+		$cb->([ map { { title => $_->{caption}, credit => $_->{owner} } } @$images ]);
+	});
 }
 
 # Decode wallpapers.json and turn it into the flat {image, caption, owner}

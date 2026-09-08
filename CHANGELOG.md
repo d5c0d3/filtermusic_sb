@@ -2,6 +2,31 @@
 
 ## Unreleased
 
+**Added artwork credits to the FilterMusic settings page.** Turning on "FilterMusic Screensaver" now
+lists every image's title and photographer/artist credit right there on the settings page, refreshed
+each time the page loads. This exists because there's no way to force credits to display on the
+screensaver itself: `ImageViewerMeta.lua` sets Jivelite's own "Text info" toggle (the thing that would
+otherwise show captions on-screen) off by default, and it's stored in a local file on the player with
+no CLI/JSON-RPC field or protocol hook a server-side plugin can reach - and it's also global to the
+whole Image Viewer applet, not something scopable to just this screensaver source even if it were
+reachable. Baking credit text into the images themselves server-side was considered and ruled out:
+players have wildly different screen sizes/orientations, so a fixed-position credit bar would get
+cropped unpredictably on some devices, and LMS only bundles `Image::Scale` for image handling, which has
+no text-drawing capability at all - a real drawing library would be a new, risky dependency this plugin
+has otherwise deliberately avoided.
+
+- `Plugin.pm`'s wallpapers.json fetch+cache logic (previously inline in the screensaver CLI handler) is
+  now a shared `_fetchScreensaverImages` helper, plus a new `fetchWallpaperCredits` built on it that the
+  settings page uses.
+- `Settings.pm` overrides `handler` with the fuller, async-capable signature
+  `Slim::Web::HTTP.pm` actually calls it with (`$class, $client, $paramRef, $callback, $httpClient,
+  $response`) rather than relying on the base `Slim::Web::Settings::handler`'s synchronous 3-arg
+  contract - the same pattern `Slim::Web::XMLBrowser` already uses, which this plugin's own
+  station-browsing web page already depends on. Credits show up on the very same page load where the
+  toggle is switched on and saved, not just on a subsequent visit.
+
+## 2.3.1 (2026-09-05)
+
 **Fixed the screensaver's caption never showing a wallpaper's title once it had a credit.**
 `_buildScreensaverImages`'s final `caption => length($credit) ? $credit : $title` never actually reached
 the `$title` fallback, because `$credit` itself already defaulted to `$title` when there was no separate
