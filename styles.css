@@ -179,7 +179,7 @@ p {
 
 main {
   width: min(100%, var(--max-width));
-  margin-inline: auto;
+  margin-inline: 0;
   text-align: left;
 }
 
