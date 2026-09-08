@@ -16,7 +16,6 @@ GitHub Pages serves at <https://d5c0d3.github.io/filtermusic_sb/repo.xml>.
 - **Direct playback** - each station plays straight from the stream URL filtermusic.net already lists;
   no extra per-station page fetch.
 - **Station artwork and descriptions** for every entry, read straight from filtermusic.net's own feed.
-- **Add to Favorites** shortcut from the Settings page, for pinning FilterMusic to your Favorites menu.
 - **Optional screensaver Image Viewer source** - a Settings-page toggle offers filtermusic.net's
   artwork as a "Server" source for the screensaver Image Viewer on Jivelite-based players (Squeezebox
   Touch/Radio, SqueezePlay). See "How it works" below.

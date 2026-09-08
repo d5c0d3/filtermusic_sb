@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+**Removed the broken "Add FilterMusic to Favorites" link from the settings page.** Its `href` depended on
+an `opmlfile` template variable that `Settings.pm` never actually set, so it always pointed at
+`plugins/Favorites/index.html?new=&autosave` - a non-functional link, not something worth wiring up.
+Removed the link, its surrounding heading/description, and the three now-unused string tokens
+(`SETUP_PLUGIN_FILTERMUSIC_MENU`, `SETUP_PLUGIN_FILTERMUSIC_MENU_DESC`,
+`SETUP_PLUGIN_FILTERMUSIC_EDIT_MENU`).
+
 **Added artwork credits to the FilterMusic settings page.** Turning on "FilterMusic Screensaver" now
 lists every image's title and photographer/artist credit right there on the settings page. This exists
 because there's no way to force credits to display on the screensaver itself: `ImageViewerMeta.lua` sets

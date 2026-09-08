@@ -10,15 +10,6 @@ PLUGIN_FILTERMUSIC_FETCH_ERROR
 PLUGIN_FILTERMUSIC_PARSE_ERROR
 	EN	Could not read the station list from filtermusic.net. The site may have changed.
 
-SETUP_PLUGIN_FILTERMUSIC_MENU
-	EN	FilterMusic Menu
-
-SETUP_PLUGIN_FILTERMUSIC_MENU_DESC
-	EN	Add FilterMusic as a shortcut in your Favorites menu.
-
-SETUP_PLUGIN_FILTERMUSIC_EDIT_MENU
-	EN	Add FilterMusic to Favorites
-
 SETUP_PLUGIN_FILTERMUSIC_SCREENSAVER
 	EN	FilterMusic Screensaver
 
