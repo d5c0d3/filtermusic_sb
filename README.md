@@ -1,217 +1,138 @@
-# FilterMusic plugin for Lyrion Music Server
+# FilterMusic
 
-Browse the internet radio stations curated on [FilterMusic.net](https://filtermusic.net) from inside
-[Lyrion Music Server](https://lyrion.org) (formerly Logitech Media Server / SlimServer), organized by
-the same genre categories used on the site (House/Dance, Techno/Trance, Jazz, Rock/Metal, ...).
+Browse internet radio stations curated on [FilterMusic.net](https://filtermusic.net) from inside [Lyrion Music Server](https://lyrion.org) (formerly Logitech Media Server / SlimServer), organized by the same genre categories used on the site.
 
-This repository is both the plugin's source and its self-hosted plugin repository (`repo.xml`), which
-GitHub Pages serves at <https://d5c0d3.github.io/filtermusic_sb/repo.xml>.
+## Features at a glance
 
-## Features
+#### Browse by genre
 
-- **Browse by genre**, matching filtermusic.net's own categories (House/Dance, Techno/Trance,
-  Electronica/Industrial, Breaks/DrumnBass, HipHop/Rap, Reggae/Dub/Dancehall, Funk/Soul/Disco, Lounge
-  Grooves, Downtempo/Ambient, Various/Mainstream, 60s/70s/80s/90s, Classical, Jazz, Rock/Metal,
-  International/Ethnic).
-- **Direct playback** - each station plays straight from the stream URL filtermusic.net already lists;
-  no extra per-station page fetch.
-- **Station artwork and descriptions** for every entry, read straight from filtermusic.net's own feed.
-- **Optional screensaver Image Viewer source** - a Settings-page toggle offers filtermusic.net's
-  artwork as a "Server" source for the screensaver Image Viewer on Jivelite-based players (Squeezebox
-  Touch/Radio, SqueezePlay). See "How it works" below.
-- **Resilient to filtermusic.net being down or changing**: if a visit's fetch fails, or the feed's
-  format changes enough to break parsing, the plugin falls back to the last successful load instead of
-  showing an empty menu or hard error - see "How it works" below.
-- **Lightly cached** - a successful load is kept in memory for a few minutes, so browsing in and back
-  out of the FilterMusic menu repeatedly doesn't refetch every time, while still staying close to what
-  filtermusic.net currently lists. See "How it works" below.
-- **No risky dependencies** - the original 0.2 release depended on a module LMS doesn't fully bundle
-  and failed to load on any current server; this rewrite only uses LMS's own bundled Perl (including
-  its bundled JSON support). See "History" below.
+House/Dance, Techno/Trance, Jazz, Rock/Metal, Classical, and more — the same categories as filtermusic.net
 
-## Installing
+Needs: nothing
 
-In LMS: **Settings → Plugins → Additional Repositories**, add:
+#### Direct playback
+
+Each station plays straight from its stream URL — no extra per-station page fetch
+
+Needs: nothing
+
+#### Station artwork and descriptions
+
+Every entry includes its logo and description, fetched directly from filtermusic.net
+
+Needs: nothing
+
+#### Optional screensaver source
+
+Enable **FilterMusic Screensaver** in Settings to offer filtermusic.net's artwork as a "Server" source for the Image Viewer screensaver on Jivelite-based players (Squeezebox Touch/Radio, SqueezePlay)
+
+Needs: Jivelite-based player
+
+#### Resilient to downtime
+
+If a fetch fails, the plugin falls back to the last successful load instead of showing an empty menu
+
+Needs: nothing
+
+#### Lightly cached
+
+Successful fetches are cached in memory for a few minutes, so repeated browsing doesn't refetch every time
+
+Needs: nothing
+
+#### No risky dependencies
+
+Only uses LMS's own bundled Perl modules — no external dependencies to break
+
+Needs: nothing
+
+## Requirements
+
+*   **Lyrion Music Server 8.0.0+** (tested with Material Skin; classic skin works but doesn't show artwork for radio items)
+
+## Installation
+
+**Via repository (recommended).** In LMS go to **Settings → Plugins → Additional Repositories** and add:
 
 ```
 https://d5c0d3.github.io/filtermusic_sb/repo.xml
 ```
 
-The FilterMusic plugin will then appear in the plugin list to install.
+Then install **FilterMusic** from the plugin list and restart.
 
-### Testing a branch
-
-To try out a branch's code on a personal/non-production LMS server, point its Additional Repositories
-entry at that branch's own `repo.xml` instead of the production URL:
+**Manual.** Download `FilterMusic_<version>.zip` from the repository, unzip it into your LMS `Plugins/` directory so it sits as `Plugins/FilterMusic/`, and restart:
 
 ```
-https://raw.githubusercontent.com/d5c0d3/filtermusic_sb/<branch>/repo.xml
+sudo rm -rf /var/lib/squeezeboxserver/Plugins/FilterMusic
+sudo unzip FilterMusic_2_3_4.zip -d /var/lib/squeezeboxserver/Plugins/
+sudo chown -R squeezeboxserver:nogroup /var/lib/squeezeboxserver/Plugins/FilterMusic
+sudo systemctl restart lyrionmusicserver
 ```
 
-GitHub Pages only ever serves `repo.xml` from the default branch, so a branch under test needs raw
-content instead - the file itself is identical either way, just fetched from a different location.
+## Quick start
 
-Two gotchas worth knowing up front:
+1.  Open **Apps → FilterMusic** in your LMS interface
+2.  Browse the genre categories (House/Dance, Techno/Trance, Jazz, etc.)
+3.  Select any station to start playing it immediately
+4.  Optional: Enable **FilterMusic Screensaver** in Settings for artwork on Jivelite players
 
-- **LMS decides whether an update is offered by comparing the `<version>` string, not the zip's
-  content.** Bump `FilterMusic/install.xml`'s (and `repo.xml`'s matching) `<version>` on every rebuild
-  pushed to the branch, or LMS won't notice a new build is even available.
-- **Both GitHub's raw-content CDN and LMS's own repository-list cache can serve a stale copy** even
-  after that version bump. If the plugin list doesn't show the new version, append a cache-busting query
-  string to the Additional Repositories URL (e.g. `?v=<anything-new>`) to force a fresh fetch before
-  assuming something is actually broken.
+## Using it
 
-**Never configure both the production `repo.xml` and a branch's `repo.xml` as Additional Repositories at
-the same time.** Both advertise the same plugin name (`FilterMusic`), and LMS's own repository-merging
-logic (`Slim::Plugin::Extensions::Plugin::findUpdates`) doesn't keep them as separate, independently
-installable channels - it aggregates every configured repository into one list and, per plugin name,
-silently keeps whichever entry has the *highest* version number, regardless of which repo it came from.
-A branch build numbered higher than the current release would get offered as *the* update even to someone
-who only meant to stay on the stable feed. Switch the one Additional Repositories entry between the
-branch's URL and the production URL rather than adding a second one.
+### Browsing stations
 
-When done testing, switch the Additional Repositories entry back to the production URL above and
-reinstall the released version.
+Open **Apps → FilterMusic** and you'll see a list of genre categories matching filtermusic.net's own organization. Each genre contains its curated stations, each with artwork and a description.
 
-## Requirements
+Tap any station to play it directly from its stream URL.
 
-- Lyrion Music Server / Logitech Media Server 8.0 or newer.
+### Genre categories
 
-## How it works
+The plugin organizes stations by the same categories as filtermusic.net:
 
-`FilterMusic/Plugin.pm` fetches `https://filtermusic.net/stations.json`, a feed maintained by
-filtermusic.net specifically for this plugin and regenerated on every site deploy, and decodes it
-directly - there's no HTML to parse and no public API beyond this one feed. Each station in the feed
-already carries its direct stream URL, name, description and artwork, so a single request builds the
-whole menu:
+*   House/Dance
+*   Techno/Trance
+*   Electronica/Industrial
+*   Breaks/DrumnBass
+*   HipHop/Rap
+*   Reggae/Dub/Dancehall
+*   Funk/Soul/Disco
+*   Lounge Grooves
+*   Downtempo/Ambient
+*   Various/Mainstream
+*   60s/70s/80s/90s
+*   Classical
+*   Jazz
+*   Rock/Metal
+*   International/Ethnic
 
-```
-{ generated, genres: [ { name, page, stations: [
-    { name, description, page, homepage, stream, playlist, logo } ] } ] }
-```
+### Screensaver Image Viewer
 
-A successful fetch is cached in memory for a few minutes (`CACHE_TTL` in `Plugin.pm`), so repeatedly
-browsing in and back out of the FilterMusic menu doesn't refetch every time. Once that window passes,
-the feed is fetched again, but if its `generated` timestamp hasn't moved since the last fetch - i.e.
-filtermusic.net hasn't redeployed - the menu already built from it is reused rather than rebuilt from
-the same data. Browsing *within* FilterMusic (into a genre, a station) never calls back into the plugin
-at all, since the whole subtree is already in the response for the top-level menu. The only state kept
-beyond the cache window is the last successful result, used as a fallback if a fetch or parse ever
-fails.
+When **FilterMusic Screensaver** is enabled in Settings, Jivelite-based players (Squeezebox Touch/Radio, SqueezePlay) can use filtermusic.net's artwork as a screensaver source.
 
-Because this depends on the feed's current shape, a breaking change to it can break parsing. If
-browsing FilterMusic in LMS starts showing an empty menu or a "could not read the station list" error,
-check `FilterMusic/Plugin.pm`'s `_decodeFeed`/`_buildMenu` against the feed's current shape first.
+On the player, select **FilterMusic Artwork** from the Screensavers picker (When playing / When stopped / When off). This is a separate screensaver entry, not added to Image Viewer's own Sources screen.
 
-### Screensaver Image Viewer source
+**Zoom, rotation, delay, ordering, and caption display** are all controlled by the player itself through its Image Viewer Settings — not by this plugin.
 
-Turning on "FilterMusic Screensaver" in Settings adds a `screensavers` field to the plugin's top-level
-Jive menu entry (see `initJive` in `Plugin.pm`). Jivelite's own `SlimMenusApplet.lua` watches every
-top-level home-menu item for that field and registers each entry as a selectable "Server" source for the
-screensaver Image Viewer, whose `ImageSourceServer.lua` fetches images by calling the entry's `cmd` - a
-new CLI command, `filtermusicartworkscreensaver`, registered alongside the main menu. It fetches
-`https://filtermusic.net/wallpapers.json` (the same feed the long-removed Material Skin background-photo
-feature, 1.1.0-1.5.0, once used) and responds with `{ data: [ {image, caption, owner}, ... ] }`, the shape
-`ImageSourceServer.lua` expects - `caption` carries the wallpaper's title and `owner` its
-artist/photographer credit when there is one (both display together, joined by `ImageSourceServer.lua`
-itself), rather than one replacing the other.
+The settings page lists every image's title and photographer/artist credit when the screensaver toggle is on, since most players don't display captions by default.
 
-This only affects Jivelite-based players (Squeezebox Touch/Radio, SqueezePlay) - it has no effect on
-Material Skin or the Default web skin, which don't have a screensaver Image Viewer. Toggling the setting
-re-registers the menu entry immediately (`Slim::Control::Jive::registerPluginMenu` is idempotent by
-`id`, so this replaces rather than duplicates it), which newly-connecting players pick up right away; an
-already-connected player may still need to reconnect to see the change, since the server doesn't push a
-live update to its home menu on a pref change. Confirmed working on SqueezePlay: after reconnecting,
-"FilterMusic Artwork" appears in the Screensavers picker (When playing / When stopped / When off),
-alongside "Image Viewer" and "Clock" - it is its own separate screensaver entry, not a new source added
-to Image Viewer's own "Sources" screen, which is a fixed, hardcoded list (`http`/`flickr`/`card`/`usb`/
-`storage`) that can't be extended from a server-side plugin at all.
+## Settings reference
 
-Each image is served through LMS's own `imageproxy/` (`Slim::Web::ImageProxy.pm`) rather than pointing
-`ImageSourceServer.lua` straight at filtermusic.net's own URLs - that Lua file only recognizes a literal
-`http://` prefix as "already absolute" (a plain `https://` URL falls through to a branch that mangles it
-by prepending the LMS server's own address in front of it), and even a plain `http://` external URL would
-hit its third branch, LMS's own long-decommissioned SqueezeNetwork image proxy. Routing through
-`imageproxy/` sidesteps both. That same branch already appends its own `/` before the path
-(`"http://" .. ip .. ":" .. port .. "/" .. urlString`), so the `image` field must **not** have a leading
-slash of its own - one did, briefly, and produced a doubled `//` that never matched
-`Slim::Web::Graphics.pm`'s `imageproxy/` route at all.
+Open **Settings → Advanced → FilterMusic** (also linked as **Plugin Settings** at the top of the plugin's page).
 
-Confirmed working end-to-end on SqueezePlay: the screensaver cycles through filtermusic.net's artwork
-with captions, images loading via the imageproxy route above.
+| Setting | What it does | Default |
+| ------- | ------------ | ------- |
+| **FilterMusic Screensaver** | Offer filtermusic.net's artwork as a screensaver source for Jivelite-based players | Off |
 
-**Zoom, rotation, delay, ordering, and whether the caption/credit text shows at all are all controlled
-by the player itself, not this plugin.** From the Screensavers picker, select "FilterMusic Artwork" (or
-"Image Viewer", since it's the same underlying applet) and open its "Image Viewer Settings" row - this
-is Jivelite's own, pre-existing settings screen (`ImageViewerApplet.lua`), unrelated to any code in this
-plugin:
+## Notes & limitations
 
-- **Image zoom** - show the complete image (may letterbox) or fill the complete screen (may crop).
-- **Image rotation** - on/off, for players that support screen rotation.
-- **Delay** - how long each image stays on screen: 5, 10, 20, 30, or 60 seconds.
-- **Ordering** - sequential or random.
-- **Text info** - shows or hides the caption/credit text this plugin supplies for each image.
-
-**"Text info" is off by default** (`ImageViewerMeta.lua`'s own `defaultSetting`), and there is no way for
-a server-side plugin to read or set it - it's stored in a local file on the player itself, with no
-CLI/JSON-RPC field or protocol hook reaching it at all. So the FilterMusic Settings page itself lists
-every image's title, photographer/artist credit, and a small thumbnail whenever the screensaver toggle is
-on - that's the one place credit to each artist is guaranteed visible, regardless of any player-side
-setting.
-
-This list reads from the same in-memory, 5-minute cache (`SCREENSAVER_CACHE_TTL` in `Plugin.pm`) the
-screensaver's own CLI command uses, not a separate fetch - so it always reflects
-whichever fetch is most recent, whether that was triggered by a player's screensaver or a previous visit
-to this page, not necessarily filtermusic.net's feed at the exact instant the page is opened. That's a
-deliberate choice, not an oversight: a player only asks the server for a new list after it finishes
-cycling through everything in its current one (`ImageSourceServer.lua`'s `nextImage`, not on any timer),
-so a player's on-screen list can already be arbitrarily older than "right now" regardless of how fresh
-the settings page's own fetch is - sharing the same cache is what keeps the two as close as they can
-realistically get, since there's no way for the server to know which player, if any, a visitor to this
-page has in mind. In practice this only matters if filtermusic.net's feed changes inside that 5-minute
-window; either way, a picture a player can no longer fetch (e.g. removed from the feed) simply fails to
-display at all rather than showing with a stale or missing credit - `ImageViewerApplet.lua`'s caption
-overlay only ever runs after a successful image load, never on its own.
-
-## Known issues
-
-**Station logos need LMS 9.1.0 or newer.** The feed's `logo` URLs are WebP. LMS's own artwork resizer
-(`Image::Scale`) can't decode WebP at all - `Slim::Web::ImageProxy.pm` instead redirects `.webp`
-artwork through an external conversion service (`https://api.lms-community.org/img/compatible/<url>`)
-before displaying it, and that entire mechanism was only added to LMS between the `9.0.3` and `9.1.1`
-releases (diffed directly against LMS-Community/slimserver's tagged source). On `9.0.3` or older, a
-WebP logo just fails to resize - logged as `Artwork resize for imageproxy/.../logo.webp/... failed` -
-everywhere LMS itself renders artwork: Now Playing (`/music/current/cover.jpg`) and the **Default** web
-skin's browse-list thumbnails alike, since both go through the same `proxiedImage()`/`/imageproxy/`
-pipeline. **Upgrade the LMS/Lyrion server to 9.1.0+ and it resolves itself, with no plugin or
-filtermusic.net change needed** - confirmed by comparing a `9.0.3` install (broken) against a `9.1.1`
-install (working) side by side. (The literally-named **"Classic"** skin is a separate, real limitation
-regardless of LMS version or image format: it has no `xmlbrowser.html` of its own and falls back to
-LMS's bare legacy template, which never shows artwork for `type => 'audio'` items at all.)
-
-## History
-
-The original 0.2 release (2011) scraped an older, jQuery-accordion version of the site using
-`HTML::TreeBuilder`. That module's dependencies (`HTML::Tagset`) are not bundled with LMS, so the
-0.2 plugin fails to load at all on any reasonably modern server
-(see [Logitech/slimserver#594](https://github.com/Logitech/slimserver/issues/594)). Version 1.0.0 was a
-full rewrite: no `HTML::TreeBuilder` dependency, updated target versions
-(`LogitechMediaServer` 8.0–9.*), a working Settings page, and parsing rebuilt against the current
-filtermusic.net markup. Version 2.0.0 consolidates a run of small follow-up releases that briefly added
-(and then removed, after it turned out unworkable in practice) an optional Material Skin background
-photo, and simplified the caching approach down to a fresh fetch on every visit. Version 2.2.0 moved
-off homepage-markup scraping entirely onto a `stations.json` feed filtermusic.net now publishes for
-this plugin, and added the lightweight in-memory cache described above. See `CHANGELOG.md` for the
-full detail.
+*   **Station logos need LMS 9.1.0 or newer.** The feed's logo URLs are WebP images. LMS 9.1.0+ includes a mechanism to handle WebP artwork; on 9.0.3 or older, logos won't display. Upgrade your LMS/Lyrion server to resolve this.
+*   **Classic skin doesn't show artwork.** The literally-named "Classic" skin has no artwork support for radio items at all — this is a skin limitation, not a plugin issue.
+*   **Storage is in-memory only.** The cached station list and artwork are kept in memory, not persisted to disk. They survive restarts only as long as the cache TTL (5 minutes for stations, 5 minutes for screensaver images).
+*   **Feed dependency.** This plugin depends on filtermusic.net's `stations.json` feed. If the feed format changes significantly, parsing may break. The plugin will fall back to the last successful fetch if this happens.
 
 ## Credits
 
-FilterMusic.net is created and curated by Spyros. Every station, genre, and image this plugin
-displays is their work, not this project's. When I contacted them about reviving the plugin, they
-offered immediately to help and built a data feed for it, so it no longer needs to scrape the
-website. Thank you, Spyros.
+FilterMusic.net is created and curated by Spyros. Every station, genre, and image this plugin displays is their work, not this project's. When the original plugin broke due to a site redesign, they offered to help and built a dedicated JSON feed for it.
 
 ## License
 
-MIT - see `LICENSE`. That covers this plugin's own code; the station data and artwork it reads from
-filtermusic.net remain filtermusic.net's own content, not licensed by this project.
+MIT — see [LICENSE](LICENSE). That covers this plugin's own code; the station data and artwork it reads from filtermusic.net remain filtermusic.net's own content, not licensed by this project.
