@@ -174,11 +174,13 @@ p {
   z-index: 1;
   min-height: 100vh;
   padding: 16px;
+  text-align: left;
 }
 
 main {
   width: min(100%, var(--max-width));
   margin-inline: auto;
+  text-align: left;
 }
 
 /* -------------------------------------------------------------------------- */

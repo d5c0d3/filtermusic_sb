@@ -18,8 +18,8 @@
     </div>
 
     <!-- Content -->
-    <div class="wrapper">
-      <main>
+    <div class="wrapper" style="text-align: left;">
+      <main style="text-align: left;">
 
         <!-- Header Card -->
         <section class="card">
@@ -99,8 +99,20 @@
             </li>
             <li>Install the <strong>FilterMusic</strong> plugin from the plugin list</li>
             <li>Restart LMS</li>
-            <li>Browse to <strong>Apps &rarr; FilterMusic</strong> to start exploring stations</li>
+            <li>Browse to <strong>Radio &rarr; FilterMusic</strong> to start exploring stations</li>
           </ol>
+        </section>
+
+        <!-- Manual Installation -->
+        <section class="card">
+          <h2>Manual installation</h2>
+          <p>
+            <strong>Manual.</strong> Download <code>FilterMusic.zip</code> from the repository, unzip it into your LMS <code>Plugins/</code> directory so it sits as <code>Plugins/FilterMusic/</code>, and restart:
+          </p>
+          <pre><code>sudo rm -rf /var/lib/squeezeboxserver/Plugins/FilterMusic
+sudo unzip FilterMusic.zip -d /var/lib/squeezeboxserver/Plugins/
+sudo chown -R squeezeboxserver:nogroup /var/lib/squeezeboxserver/Plugins/FilterMusic
+sudo systemctl restart lyrionmusicserver</code></pre>
         </section>
 
         <!-- Requirements -->
@@ -118,9 +130,12 @@
           
           <h3>Browsing stations</h3>
           <p>
-            Open <strong>Apps &rarr; FilterMusic</strong> to see the complete genre list.
+            Open <strong>Radio &rarr; FilterMusic</strong> to see the complete genre list.
             Each genre contains stations curated by FilterMusic.net, with artwork and descriptions.
             Tap any station to start playing immediately.
+          </p>
+          <p>
+            <strong>Note:</strong> On the classic skin, FilterMusic appears under <strong>Extras &rarr; FilterMusic</strong>.
           </p>
 
           <h3>Genres</h3>
