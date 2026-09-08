@@ -6,6 +6,37 @@
   <meta name="description" content="FilterMusic plugin for Lyrion Music Server - Browse FilterMusic.net radio stations directly from LMS">
   <title>FilterMusic - LMS Plugin</title>
   <link rel="stylesheet" href="styles.css">
+  <script>
+    // Fetch wallpaper from FilterMusic.net's wallpapers.json feed
+    async function loadWallpaper() {
+      try {
+        const response = await fetch('https://filtermusic.net/wallpapers.json');
+        const data = await response.json();
+        
+        if (data && data.data && data.data.length > 0) {
+          // Pick a random wallpaper
+          const wallpapers = data.data.filter(w => w.image);
+          if (wallpapers.length > 0) {
+            const randomWallpaper = wallpapers[Math.floor(Math.random() * wallpapers.length)];
+            const wallpaperContainer = document.querySelector('.wallpaper-container');
+            if (wallpaperContainer) {
+              wallpaperContainer.style.backgroundImage = `url('${randomWallpaper.image}')`;
+            }
+          }
+        }
+      } catch (error) {
+        console.log('Could not load FilterMusic wallpaper, using fallback');
+        // Fallback to local wallpaper if available
+        const wallpaperContainer = document.querySelector('.wallpaper-container');
+        if (wallpaperContainer && !wallpaperContainer.style.backgroundImage) {
+          wallpaperContainer.style.backgroundImage = "url('/filtermusic_sb/assets/wallpaper.jpg')";
+        }
+      }
+    }
+    
+    // Load wallpaper when page loads
+    document.addEventListener('DOMContentLoaded', loadWallpaper);
+  </script>
 </head>
 <body>
 
@@ -13,7 +44,7 @@
 
     <!-- Wallpaper -->
     <div class="wallpaper" id="wallpaper" aria-hidden="true">
-      <div class="wallpaper-container loaded" style="background-image: url('/filtermusic_sb/assets/wallpaper.jpg');"></div>
+      <div class="wallpaper-container loaded"></div>
       <div class="wallpaper-cover"></div>
     </div>
 
