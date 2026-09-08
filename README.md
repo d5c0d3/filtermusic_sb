@@ -156,9 +156,22 @@ plugin:
 **"Text info" is off by default** (`ImageViewerMeta.lua`'s own `defaultSetting`), and there is no way for
 a server-side plugin to read or set it - it's stored in a local file on the player itself, with no
 CLI/JSON-RPC field or protocol hook reaching it at all. So the FilterMusic Settings page itself lists
-every image's title and photographer/artist credit whenever the screensaver toggle is on, refreshed each
-time the page loads - that's the one place credit to each artist is guaranteed visible, regardless of any
-player-side setting.
+every image's title and photographer/artist credit whenever the screensaver toggle is on - that's the one
+place credit to each artist is guaranteed visible, regardless of any player-side setting.
+
+This list reads from the same in-memory, 5-minute cache (`SCREENSAVER_CACHE_TTL` in `Plugin.pm`) the
+screensaver's own CLI command uses, not a separate fetch - so it always reflects
+whichever fetch is most recent, whether that was triggered by a player's screensaver or a previous visit
+to this page, not necessarily filtermusic.net's feed at the exact instant the page is opened. That's a
+deliberate choice, not an oversight: a player only asks the server for a new list after it finishes
+cycling through everything in its current one (`ImageSourceServer.lua`'s `nextImage`, not on any timer),
+so a player's on-screen list can already be arbitrarily older than "right now" regardless of how fresh
+the settings page's own fetch is - sharing the same cache is what keeps the two as close as they can
+realistically get, since there's no way for the server to know which player, if any, a visitor to this
+page has in mind. In practice this only matters if filtermusic.net's feed changes inside that 5-minute
+window; either way, a picture a player can no longer fetch (e.g. removed from the feed) simply fails to
+display at all rather than showing with a stale or missing credit - `ImageViewerApplet.lua`'s caption
+overlay only ever runs after a successful image load, never on its own.
 
 ## Known issues
 

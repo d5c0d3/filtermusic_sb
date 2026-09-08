@@ -3,21 +3,29 @@
 ## Unreleased
 
 **Added artwork credits to the FilterMusic settings page.** Turning on "FilterMusic Screensaver" now
-lists every image's title and photographer/artist credit right there on the settings page, refreshed
-each time the page loads. This exists because there's no way to force credits to display on the
-screensaver itself: `ImageViewerMeta.lua` sets Jivelite's own "Text info" toggle (the thing that would
-otherwise show captions on-screen) off by default, and it's stored in a local file on the player with
-no CLI/JSON-RPC field or protocol hook a server-side plugin can reach - and it's also global to the
-whole Image Viewer applet, not something scopable to just this screensaver source even if it were
-reachable. Baking credit text into the images themselves server-side was considered and ruled out:
-players have wildly different screen sizes/orientations, so a fixed-position credit bar would get
-cropped unpredictably on some devices, and LMS only bundles `Image::Scale` for image handling, which has
-no text-drawing capability at all - a real drawing library would be a new, risky dependency this plugin
-has otherwise deliberately avoided.
+lists every image's title and photographer/artist credit right there on the settings page. This exists
+because there's no way to force credits to display on the screensaver itself: `ImageViewerMeta.lua` sets
+Jivelite's own "Text info" toggle (the thing that would otherwise show captions on-screen) off by
+default, and it's stored in a local file on the player with no CLI/JSON-RPC field or protocol hook a
+server-side plugin can reach - and it's also global to the whole Image Viewer applet, not something
+scopable to just this screensaver source even if it were reachable. Baking credit text into the images
+themselves server-side was considered and ruled out: players have wildly different screen
+sizes/orientations, so a fixed-position credit bar would get cropped unpredictably on some devices, and
+LMS only bundles `Image::Scale` for image handling, which has no text-drawing capability at all - a real
+drawing library would be a new, risky dependency this plugin has otherwise deliberately avoided.
 
 - `Plugin.pm`'s wallpapers.json fetch+cache logic (previously inline in the screensaver CLI handler) is
   now a shared `_fetchScreensaverImages` helper, plus a new `fetchWallpaperCredits` built on it that the
-  settings page uses.
+  settings page uses. **Both share the same in-memory cache and TTL as the screensaver's own CLI
+  command** - deliberate, not an oversight: a player only asks the server for a new image list after it
+  finishes cycling through its current one (`ImageSourceServer.lua`'s `nextImage`, not on a timer), so a
+  player's on-screen list can already be arbitrarily older than "now" no matter how fresh the settings
+  page's own fetch is. Sharing the cache keeps the credits list matching whichever fetch (player or
+  settings page) happened most recently, which is as close as the two can realistically stay in sync,
+  since the server has no way to know which player, if any, a visitor to the settings page has in mind.
+  A picture a player can no longer fetch (e.g. removed from the feed) simply fails to load rather than
+  displaying with a stale or missing credit - confirmed the caption overlay in `ImageViewerApplet.lua`'s
+  `_renderImage` only ever runs after a successful image load, never on its own.
 - `Settings.pm` overrides `handler` with the fuller, async-capable signature
   `Slim::Web::HTTP.pm` actually calls it with (`$class, $client, $paramRef, $callback, $httpClient,
   $response`) rather than relying on the base `Slim::Web::Settings::handler`'s synchronous 3-arg
