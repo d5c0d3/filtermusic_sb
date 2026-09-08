@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FilterMusic &mdash; LMS Plugin</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            background-color: #f8f8f8;
+            color: #333;
+        }
+        h1 {
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #444;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #555;
+            margin-top: 25px;
+        }
+        h4 {
+            color: #666;
+            margin-top: 20px;
+        }
+        p, ul, ol {
+            margin: 1em 0;
+        }
+        ul {
+            padding-left: 2em;
+        }
+        li {
+            margin: 0.5em 0;
+        }
+        code, pre {
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+            font-size: 0.9em;
+        }
+        pre {
+            background: #f4f4f4;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        code {
+            background: #f4f4f4;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1em 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        blockquote {
+            border-left: 4px solid #ddd;
+            margin: 1em 0;
+            padding: 0 1em;
+            color: #666;
+        }
+        .needs {
+            font-style: italic;
+            color: #666;
+            font-size: 0.9em;
+        }
+        .feature-item {
+            margin-bottom: 1.5em;
+        }
+        a {
+            color: #0366d6;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .quick-start {
+            background: #fefefe;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #0366d6;
+        }
+        .quick-start ol {
+            padding-left: 1.5em;
+        }
+        .quick-start li {
+            margin: 0.5em 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>FilterMusic</h1>
+
+    <p>
+        Browse internet radio stations curated on <a href="https://filtermusic.net">FilterMusic.net</a> 
+        from inside <a href="https://lyrion.org">Lyrion Music Server</a> 
+        (formerly Logitech Media Server / SlimServer), organized by the same genre categories used on the site.
+    </p>
+
+    <h2>Features at a glance</h2>
+
+    <div class="feature-item">
+        <h4>Browse by genre</h4>
+        <p>House/Dance, Techno/Trance, Jazz, Rock/Metal, Classical, and more &mdash; the same categories as filtermusic.net</p>
+        <p class="needs">Needs: nothing</p>
+    </div>
+
+    <div class="feature-item">
+        <h4>Direct playback</h4>
+        <p>Each station plays straight from its stream URL &mdash; no extra per-station page fetch</p>
+        <p class="needs">Needs: nothing</p>
+    </div>
+
+    <div class="feature-item">
+        <h4>Station artwork and descriptions</h4>
+        <p>Every entry includes its logo and description, fetched directly from filtermusic.net</p>
+        <p class="needs">Needs: nothing</p>
+    </div>
+
+    <div class="feature-item">
+        <h4>Optional screensaver source</h4>
+        <p>Enable <strong>FilterMusic Screensaver</strong> in Settings to offer filtermusic.net's artwork as a "Server" source for the Image Viewer screensaver on Jivelite-based players (Squeezebox Touch/Radio, SqueezePlay)</p>
+        <p class="needs">Needs: Jivelite-based player</p>
+    </div>
+
+    <div class="feature-item">
+        <h4>Resilient to downtime</h4>
+        <p>If a fetch fails, the plugin falls back to the last successful load instead of showing an empty menu</p>
+        <p class="needs">Needs: nothing</p>
+    </div>
+
+    <div class="feature-item">
+        <h4>Lightly cached</h4>
+        <p>Successful fetches are cached in memory for a few minutes, so repeated browsing doesn't refetch every time</p>
+        <p class="needs">Needs: nothing</p>
+    </div>
+
+    <div class="feature-item">
+        <h4>No risky dependencies</h4>
+        <p>Only uses LMS's own bundled Perl modules &mdash; no external dependencies to break</p>
+        <p class="needs">Needs: nothing</p>
+    </div>
+
+    <h2>Requirements</h2>
+    <ul>
+        <li><strong>Lyrion Music Server 8.0.0+</strong> (tested with Material Skin; classic skin works but doesn't show artwork for radio items)</li>
+    </ul>
+
+    <h2>Installation</h2>
+
+    <p><strong>Via repository (recommended).</strong> In LMS go to <strong>Settings &rarr; Plugins &rarr; Additional Repositories</strong> and add:</p>
+    <pre>https://d5c0d3.github.io/filtermusic_sb/repo.xml</pre>
+    <p>Then install <strong>FilterMusic</strong> from the plugin list and restart.</p>
+
+    <p><strong>Manual.</strong> Download the latest <code>FilterMusic_&lt;version&gt;.zip</code> from the <a href="https://github.com/d5c0d3/filtermusic_sb/releases">releases</a>, unzip it into your LMS <code>Plugins/</code> directory so it sits as <code>Plugins/FilterMusic/</code>, and restart:</p>
+    <pre>sudo rm -rf /var/lib/squeezeboxserver/Plugins/FilterMusic
+sudo unzip FilterMusic_2_3_4.zip -d /var/lib/squeezeboxserver/Plugins/
+sudo chown -R squeezeboxserver:nogroup /var/lib/squeezeboxserver/Plugins/FilterMusic
+sudo systemctl restart lyrionmusicserver</pre>
+
+    <h2>Quick start</h2>
+    <div class="quick-start">
+        <ol>
+            <li>Open <strong>Apps &rarr; FilterMusic</strong> in your LMS interface</li>
+            <li>Browse the genre categories (House/Dance, Techno/Trance, Jazz, etc.)</li>
+            <li>Select any station to start playing it immediately</li>
+            <li>Optional: Enable <strong>FilterMusic Screensaver</strong> in Settings for artwork on Jivelite players</li>
+        </ol>
+    </div>
+
+    <h2>Using it</h2>
+
+    <h3>Browsing stations</h3>
+    <p>Open <strong>Apps &rarr; FilterMusic</strong> and you'll see a list of genre categories matching filtermusic.net's own organization. Each genre contains its curated stations, each with artwork and a description.</p>
+    <p>Tap any station to play it directly from its stream URL.</p>
+
+    <h3>Genre categories</h3>
+    <p>The plugin organizes stations by the same categories as filtermusic.net:</p>
+    <ul>
+        <li>House/Dance</li>
+        <li>Techno/Trance</li>
+        <li>Electronica/Industrial</li>
+        <li>Breaks/DrumnBass</li>
+        <li>HipHop/Rap</li>
+        <li>Reggae/Dub/Dancehall</li>
+        <li>Funk/Soul/Disco</li>
+        <li>Lounge Grooves</li>
+        <li>Downtempo/Ambient</li>
+        <li>Various/Mainstream</li>
+        <li>60s/70s/80s/90s</li>
+        <li>Classical</li>
+        <li>Jazz</li>
+        <li>Rock/Metal</li>
+        <li>International/Ethnic</li>
+    </ul>
+
+    <h3>Screensaver Image Viewer</h3>
+    <p>When <strong>FilterMusic Screensaver</strong> is enabled in Settings, Jivelite-based players (Squeezebox Touch/Radio, SqueezePlay) can use filtermusic.net's artwork as a screensaver source.</p>
+    <p>On the player, select <strong>FilterMusic Artwork</strong> from the Screensavers picker (When playing / When stopped / When off). This is a separate screensaver entry, not added to Image Viewer's own Sources screen.</p>
+    <p><strong>Zoom, rotation, delay, ordering, and caption display</strong> are all controlled by the player itself through its Image Viewer Settings &mdash; not by this plugin.</p>
+    <p>The settings page lists every image's title and photographer/artist credit when the screensaver toggle is on, since most players don't display captions by default.</p>
+
+    <h2>Settings reference</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Setting</th>
+                <th>What it does</th>
+                <th>Default</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>FilterMusic Screensaver</strong></td>
+                <td>Offer filtermusic.net's artwork as a screensaver source for Jivelite-based players</td>
+                <td>Off</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>Notes &amp; limitations</h2>
+    <ul>
+        <li><strong>Station logos need LMS 9.1.0 or newer.</strong> The feed's logo URLs are WebP images. LMS 9.1.0+ includes a mechanism to handle WebP artwork; on 9.0.3 or older, logos won't display. Upgrade your LMS/Lyrion server to resolve this.</li>
+        <li><strong>Classic skin doesn't show artwork.</strong> The literally-named "Classic" skin has no artwork support for radio items at all &mdash; this is a skin limitation, not a plugin issue.</li>
+        <li><strong>Storage is in-memory only.</strong> The cached station list and artwork are kept in memory, not persisted to disk. They survive restarts only as long as the cache TTL (5 minutes for stations, 5 minutes for screensaver images).</li>
+        <li><strong>Feed dependency.</strong> This plugin depends on filtermusic.net's <code>stations.json</code> feed. If the feed format changes significantly, parsing may break. The plugin will fall back to the last successful fetch if this happens.</li>
+    </ul>
+
+    <h2>Credits</h2>
+    <p>FilterMusic.net is created and curated by Spyros. Every station, genre, and image this plugin displays is their work, not this project's. When the original plugin broke due to a site redesign, they offered to help and built a dedicated JSON feed for it.</p>
+
+    <h2>License</h2>
+    <p>MIT &mdash; see <a href="LICENSE">LICENSE</a>. That covers this plugin's own code; the station data and artwork it reads from filtermusic.net remain filtermusic.net's own content, not licensed by this project.</p>
+</body>
+</html>
