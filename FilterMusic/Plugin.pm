@@ -3,7 +3,7 @@ package Plugins::FilterMusic::Plugin;
 #########################################################################
 # Plugin: FilterMusic                                                   #
 #                                                                       #
-# Version: 2.3.3                                                       #
+# Version: 2.3.4                                                       #
 #                                                                       #
 # Website: https://filtermusic.net                                     #
 #                                                                       #
@@ -74,6 +74,7 @@ use constant USER_AGENT            => 'FilterMusic-LMS-Plugin/2.0 (+https://gith
 use constant CACHE_TTL             => 300; # seconds
 use constant SCREENSAVER_CACHE_TTL => 300; # seconds
 use constant SCREENSAVER_CLI_CMD   => 'filtermusicartworkscreensaver';
+use constant CREDITS_THUMB_SIZE    => 32; # pixels, for the settings-page credits list
 
 my $log = Slim::Utils::Log->addLogCategory({
 	'category'     => 'plugin.filtermusic',
@@ -412,18 +413,20 @@ sub fetchWallpaperCredits {
 
 	_fetchScreensaverImages(sub {
 		my ($images) = @_;
-		$cb->([ map { { title => $_->{caption}, credit => $_->{owner} } } @$images ]);
+		$cb->([ map { { title => $_->{caption}, credit => $_->{owner}, thumb => $_->{thumb} } } @$images ]);
 	});
 }
 
-# Decode wallpapers.json and turn it into the flat {image, caption, owner}
-# array _artworkScreensaverImages responds with - caption/owner are two of
-# ImageSourceServer.lua's three independent, optional text lines (the third,
-# 'date', isn't in this feed), which it joins together for display, so the
-# title and credit both show rather than one replacing the other. Feed
-# shape: [ { title, body, field_wallpaper }, ... ] - body is either an HTML
-# string or the JSON boolean false when there's no credit; entries without a
-# field_wallpaper are skipped.
+# Decode wallpapers.json and turn it into the flat {image, thumb, caption,
+# owner} array _artworkScreensaverImages responds with - caption/owner are
+# two of ImageSourceServer.lua's three independent, optional text lines (the
+# third, 'date', isn't in this feed), which it joins together for display,
+# so the title and credit both show rather than one replacing the other.
+# 'thumb' is unused by ImageSourceServer.lua (it only reads image/caption/
+# date/owner) but is read by fetchWallpaperCredits for the settings page's
+# own credits list. Feed shape: [ { title, body, field_wallpaper }, ... ] -
+# body is either an HTML string or the JSON boolean false when there's no
+# credit; entries without a field_wallpaper are skipped.
 sub _buildScreensaverImages {
 	my ($content) = @_;
 
@@ -475,8 +478,20 @@ sub _buildScreensaverImages {
 		my $proxiedImage = 'imageproxy/' . uri_escape_utf8(WALLPAPER_BASE_URL . $entry->{field_wallpaper})
 			. '/image{resizeParams}.png';
 
+		# A second, separately-sized proxied URL for the settings page's own
+		# credits list (a plain browser <img>, not Jivelite) - the
+		# '{resizeParams}' placeholder above is Jivelite's own substitution
+		# token, meaningless to a browser; this one bakes in a real, fixed
+		# WxH spec instead so Slim::Web::Graphics.pm's spec parser resizes it
+		# directly rather than taking imageproxy's bare-extension redirect
+		# shortcut. Default resize mode ('m', confirmed in GDResizer.pm) fits
+		# within the box preserving aspect ratio - fine for a small thumbnail.
+		my $thumb = 'imageproxy/' . uri_escape_utf8(WALLPAPER_BASE_URL . $entry->{field_wallpaper})
+			. '/image_' . CREDITS_THUMB_SIZE . 'x' . CREDITS_THUMB_SIZE . '.png';
+
 		push @images, {
 			image   => $proxiedImage,
+			thumb   => $thumb,
 			caption => $title,
 			( defined $credit ? ( owner => $credit ) : () ),
 		};

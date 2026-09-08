@@ -155,8 +155,9 @@ plugin:
 **"Text info" is off by default** (`ImageViewerMeta.lua`'s own `defaultSetting`), and there is no way for
 a server-side plugin to read or set it - it's stored in a local file on the player itself, with no
 CLI/JSON-RPC field or protocol hook reaching it at all. So the FilterMusic Settings page itself lists
-every image's title and photographer/artist credit whenever the screensaver toggle is on - that's the one
-place credit to each artist is guaranteed visible, regardless of any player-side setting.
+every image's title, photographer/artist credit, and a small thumbnail whenever the screensaver toggle is
+on - that's the one place credit to each artist is guaranteed visible, regardless of any player-side
+setting.
 
 This list reads from the same in-memory, 5-minute cache (`SCREENSAVER_CACHE_TTL` in `Plugin.pm`) the
 screensaver's own CLI command uses, not a separate fetch - so it always reflects

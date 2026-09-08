@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+**Added small thumbnails to the settings page's credits list.** Each entry now shows a 32x32 preview of
+the image alongside its title/credit. Uses a second, separately-sized `imageproxy/` URL per entry
+(`_buildScreensaverImages`'s new `thumb` field) rather than the existing `image` field, since that one
+has Jivelite's own `{resizeParams}` placeholder baked in - meaningless to a plain browser `<img>` tag,
+which would either fail to parse as a resize spec or (via `Slim::Web::ImageProxy.pm`'s bare-extension
+redirect shortcut) load the full-size original 100+ times over. `thumb` bakes in a real, fixed 32x32 spec
+instead, using the default resize mode (`'m'`, confirmed in `GDResizer.pm` - fit within bounds, preserve
+aspect ratio) - appropriate for a small thumbnail. `fetchWallpaperCredits` passes this straight through;
+`ImageSourceServer.lua` on the player itself just ignores the extra field, since it only ever reads
+`image`/`caption`/`date`/`owner`.
+
 **Removed the broken "Add FilterMusic to Favorites" link from the settings page.** Its `href` depended on
 an `opmlfile` template variable that `Settings.pm` never actually set, so it always pointed at
 `plugins/Favorites/index.html?new=&autosave` - a non-functional link, not something worth wiring up.

@@ -12,9 +12,12 @@
 		[% IF wallpaperCredits.size %]
 			<div class="prefHead">[% "SETUP_PLUGIN_FILTERMUSIC_CREDITS" | string | upper %]</div>
 			<div class="prefDesc">[% "SETUP_PLUGIN_FILTERMUSIC_CREDITS_DESC" | string %]</div>
-			<ul>
+			<ul style="list-style:none; padding:0;">
 			[% FOREACH c = wallpaperCredits %]
-				<li>[% c.title | html %][% IF c.credit %] &mdash; [% c.credit | html %][% END %]</li>
+				<li style="margin-bottom:4px;">
+					<img src="[% webroot %][% c.thumb %]" width="32" height="32" alt="" style="vertical-align:middle; margin-right:6px;">
+					[% c.title | html %][% IF c.credit %] &mdash; [% c.credit | html %][% END %]
+				</li>
 			[% END %]
 			</ul>
 		[% END %]
