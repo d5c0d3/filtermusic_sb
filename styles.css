@@ -252,6 +252,7 @@ main {
   padding: 16px;
 
   background: var(--card);
+  text-align: left;
 }
 
 .card:first-child {
@@ -418,13 +419,14 @@ main {
   display: flex;
   min-height: 64px;
 
-  align-items: center;
-  justify-content: space-between;
+  align-items: flex-start;
+  justify-content: flex-start;
   gap: 16px;
 
   padding: 16px;
 
   background: var(--card);
+  text-align: left;
 
   transition:
     opacity var(--duration) var(--ease),
@@ -447,6 +449,7 @@ main {
 
 .item-content {
   min-width: 0;
+  text-align: left;
 }
 
 .item-title {
@@ -457,6 +460,7 @@ main {
 
   text-overflow: ellipsis;
   white-space: nowrap;
+  text-align: left;
 }
 
 .item-description {
@@ -465,6 +469,7 @@ main {
   color: #fff;
   font-size: 0.875rem;
   opacity: 0.6;
+  text-align: left;
 }
 
 /* -------------------------------------------------------------------------- */
