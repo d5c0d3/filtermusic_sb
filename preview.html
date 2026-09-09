@@ -6,55 +6,36 @@
   <meta name="description" content="FilterMusic plugin for Lyrion Music Server - Browse FilterMusic.net radio stations directly from LMS">
   <title>FilterMusic - LMS Plugin (Preview)</title>
   <script>
-    // Known FilterMusic.net wallpaper URLs that work with direct HTTPS loading
-    const wallpapers = [
-      {
-        image: 'https://filtermusic.net/assets/images/wallpapers/abstract-1.jpg',
-        caption: 'Abstract Flow',
-        owner: 'FilterMusic.net'
-      },
-      {
-        image: 'https://filtermusic.net/assets/images/wallpapers/city-1.jpg',
-        caption: 'City Lights',
-        owner: 'FilterMusic.net'
-      },
-      {
-        image: 'https://filtermusic.net/assets/images/wallpapers/nature-1.jpg',
-        caption: 'Nature Sounds',
-        owner: 'FilterMusic.net'
-      },
-      {
-        image: 'https://filtermusic.net/assets/images/wallpapers/space-1.jpg',
-        caption: 'Cosmic Vibes',
-        owner: 'FilterMusic.net'
-      },
-      {
-        image: 'https://filtermusic.net/assets/images/wallpapers/water-1.jpg',
-        caption: 'Ocean Waves',
-        owner: 'FilterMusic.net'
-      }
-    ];
+    let currentWallpaper = null;
     
-    function loadWallpaper() {
+    // Fetch wallpaper from FilterMusic.net's wallpapers.json feed
+    async function loadWallpaper() {
       try {
-        const randomIndex = Math.floor(Math.random() * wallpapers.length);
-        const wallpaper = wallpapers[randomIndex];
+        const response = await fetch('https://filtermusic.net/wallpapers.json');
+        const data = await response.json();
         
-        const wallpaperContainer = document.querySelector('.wallpaper-container');
-        if (wallpaperContainer) {
-          wallpaperContainer.style.backgroundImage = `url('${wallpaper.image}')`;
-        }
-        
-        const creditsEl = document.getElementById('wallpaper-credits');
-        if (creditsEl) {
-          const title = wallpaper.caption || '';
-          const owner = wallpaper.owner || '';
-          const creditText = [title, owner].filter(Boolean).join(' - ');
-          creditsEl.textContent = creditText || 'FilterMusic.net';
-          creditsEl.style.display = creditText ? 'block' : 'none';
+        // The feed is a top-level array, not {data: []}
+        if (Array.isArray(data) && data.length > 0) {
+          // Filter entries with field_wallpaper
+          const wallpapers = data.filter(w => w.field_wallpaper);
+          
+          if (wallpapers.length > 0) {
+            const randomWallpaper = wallpapers[Math.floor(Math.random() * wallpapers.length)];
+            currentWallpaper = randomWallpaper;
+            
+            // Construct the full image URL: https://filtermusic.github.io/wallpaper/filename.jpg
+            const imageUrl = `https://filtermusic.github.io/wallpaper/${randomWallpaper.field_wallpaper}`;
+            
+            const wallpaperContainer = document.querySelector('.wallpaper-container');
+            if (wallpaperContainer) {
+              wallpaperContainer.style.backgroundImage = `url('${imageUrl}')`;
+            }
+            
+            updateCredits();
+          }
         }
       } catch (error) {
-        console.log('Wallpaper error:', error);
+        console.log('Could not load FilterMusic wallpaper, using fallback:', error);
         const wallpaperContainer = document.querySelector('.wallpaper-container');
         if (wallpaperContainer && !wallpaperContainer.style.backgroundImage) {
           wallpaperContainer.style.background = 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)';
@@ -64,6 +45,16 @@
           creditsEl.textContent = 'FilterMusic.net';
           creditsEl.style.display = 'block';
         }
+      }
+    }
+    
+    function updateCredits() {
+      const creditsEl = document.getElementById('wallpaper-credits');
+      if (creditsEl && currentWallpaper) {
+        const title = currentWallpaper.title || '';
+        const creditText = title || 'FilterMusic.net';
+        creditsEl.textContent = creditText;
+        creditsEl.style.display = creditText ? 'block' : 'none';
       }
     }
     
@@ -564,7 +555,7 @@ ul li {
 
   <div class="app">
 
-    <!-- Wallpaper - Direct HTTPS image from FilterMusic.net -->
+    <!-- Wallpaper - Dynamic from FilterMusic.net wallpapers.json -->
     <div class="wallpaper" id="wallpaper" aria-hidden="true">
       <div class="wallpaper-container loaded"></div>
       <div class="wallpaper-cover"></div>
