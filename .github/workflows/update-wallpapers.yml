@@ -1,0 +1,48 @@
+name: Update wallpapers feed
+
+# Vendors a copy of https://filtermusic.net/wallpapers.json into this repo so
+# the GitHub Pages site can fetch it same-origin. filtermusic.net (hosted on
+# Netlify's free tier) can't send CORS headers, so browsers on
+# d5c0d3.github.io can never fetch that URL directly - only a server-side
+# fetch (like this Action, or the LMS plugin's own Perl backend) can reach it.
+
+on:
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-wallpapers:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Fetch wallpapers.json from filtermusic.net
+        run: curl -fsSL "https://filtermusic.net/wallpapers.json" -o wallpapers.json.new
+
+      - name: Validate fetched JSON
+        run: jq empty wallpapers.json.new
+
+      - name: Replace vendored copy if changed
+        id: diff
+        run: |
+          if [ -f wallpapers.json ] && cmp -s wallpapers.json.new wallpapers.json; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            rm wallpapers.json.new
+          else
+            mv wallpapers.json.new wallpapers.json
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Commit and push
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add wallpapers.json
+          git commit -m "Update vendored wallpapers.json from filtermusic.net"
+          git push

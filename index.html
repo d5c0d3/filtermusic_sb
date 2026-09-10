@@ -9,10 +9,13 @@
   <script>
     let currentWallpaper = null;
     
-    // Fetch wallpaper from FilterMusic.net's wallpapers.json feed
+    // Fetch wallpaper metadata from our vendored copy of FilterMusic.net's
+    // wallpapers.json feed (refreshed by .github/workflows/update-wallpapers.yml).
+    // filtermusic.net itself can't send CORS headers (Netlify free tier), so
+    // this can only be fetched same-origin, not from filtermusic.net directly.
     async function loadWallpaper() {
       try {
-        const response = await fetch('https://filtermusic.net/wallpapers.json');
+        const response = await fetch('/filtermusic_sb/wallpapers.json');
         const data = await response.json();
         
         // The feed is a top-level array, not {data: []}
@@ -39,7 +42,7 @@
         console.log('Could not load FilterMusic wallpaper, using fallback:', error);
         const wallpaperContainer = document.querySelector('.wallpaper-container');
         if (wallpaperContainer && !wallpaperContainer.style.backgroundImage) {
-          wallpaperContainer.style.backgroundImage = "url('/filtermusic_sb/assets/wallpaper.jpg')";
+          wallpaperContainer.style.background = 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)';
         }
       }
     }
