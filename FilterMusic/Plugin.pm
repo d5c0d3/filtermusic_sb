@@ -54,7 +54,7 @@ use warnings;
 
 use base qw(Slim::Plugin::OPMLBased);
 
-use JSON::XS::VersionOneAndTwo;
+use JSON::XS;
 
 use URI::Escape qw(uri_escape_utf8);
 
