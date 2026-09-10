@@ -114,6 +114,12 @@ h1 {
   line-height: 1.33;
 }
 
+.logo {
+  display: block;
+  height: 40px;
+  width: auto;
+}
+
 h2 {
   margin-bottom: 1rem;
   font-size: 1.25rem;
