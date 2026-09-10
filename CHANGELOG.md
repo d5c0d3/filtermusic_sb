@@ -1,6 +1,12 @@
 # Changelog
 
-## Unreleased
+## 2.3.5 (2026-09-10)
+
+**Replaced `JSON::XS::VersionOneAndTwo` with `JSON::XS`.** LMS is phasing out the
+`JSON::XS::VersionOneAndTwo` compat shim (see
+[LMS-Community/slimserver#1619](https://github.com/LMS-Community/slimserver/pull/1619)). The plugin only
+ever calls `decode_json`, which `JSON::XS` provides directly, so no other code needed to change. Reported
+by @PaulWebster in #7.
 
 **Added small thumbnails to the settings page's credits list.** Each entry now shows a 32x32 preview of
 the image alongside its title/credit. Uses a second, separately-sized `imageproxy/` URL per entry

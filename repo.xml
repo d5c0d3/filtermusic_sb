@@ -9,7 +9,7 @@
 			<desc lang="EN">Browse internet radio stations curated on FilterMusic.net, organized by genre.</desc>
 			<creator>d5c0d3</creator>
 			<category>radio</category>
-			<url>https://raw.githubusercontent.com/d5c0d3/filtermusic_sb/fix/json-xs-version-one-and-two/FilterMusic_2_3_5.zip</url>
+			<url>https://d5c0d3.github.io/filtermusic_sb/FilterMusic_2_3_5.zip</url>
 			<link>https://github.com/d5c0d3/filtermusic_sb/issues</link>
 			<sha>fcbc618fe9dc4c268a28f3f375ed1cab7284b928</sha>
 		</plugin>
