@@ -544,6 +544,47 @@ main {
 }
 
 /* -------------------------------------------------------------------------- */
+/* Tables                                                                     */
+/* -------------------------------------------------------------------------- */
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+}
+
+th,
+td {
+  padding: 10px 12px;
+
+  text-align: left;
+  vertical-align: top;
+
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+th {
+  font-family: "Montserrat", var(--font-sans);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+tr:last-child td {
+  border-bottom: none;
+}
+
+td:last-child,
+th:last-child {
+  color: var(--text-color);
+  opacity: 0.7;
+  white-space: nowrap;
+}
+
+/* -------------------------------------------------------------------------- */
 /* Code blocks and pre elements                                                */
 /* -------------------------------------------------------------------------- */
 

@@ -92,60 +92,48 @@
         <section class="card">
           <h2>Features at a glance</h2>
 
-          <div class="item-list">
-            <article class="item-card">
-              <div class="item-content">
-                <div class="item-title">Browse by genre</div>
-                <div class="item-description">
-                  Organized by FilterMusic.net's own categories (House/Dance, Techno/Trance, Jazz, Rock/Metal, etc.)
-                </div>
-              </div>
-            </article>
-
-            <article class="item-card">
-              <div class="item-content">
-                <div class="item-title">Direct playback</div>
-                <div class="item-description">
-                  Each station plays straight from the stream URL - no extra page fetch
-                </div>
-              </div>
-            </article>
-
-            <article class="item-card">
-              <div class="item-content">
-                <div class="item-title">Station artwork and descriptions</div>
-                <div class="item-description">
-                  For every entry, read directly from FilterMusic.net's feed
-                </div>
-              </div>
-            </article>
-
-            <article class="item-card">
-              <div class="item-content">
-                <div class="item-title">Screensaver Image Viewer source</div>
-                <div class="item-description">
-                  Optional FilterMusic.net artwork as a screensaver source for Jivelite-based players
-                </div>
-              </div>
-            </article>
-
-            <article class="item-card">
-              <div class="item-content">
-                <div class="item-title">Resilient to changes</div>
-                <div class="item-description">
-                  Falls back to last successful load if FilterMusic.net is down or feed format changes
-                </div>
-              </div>
-            </article>
-
-            <article class="item-card">
-              <div class="item-content">
-                <div class="item-title">Lightly cached</div>
-                <div class="item-description">
-                  Successful loads cached for a few minutes to avoid repeated refetches
-                </div>
-              </div>
-            </article>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Feature</th>
+                  <th>What it gives you</th>
+                  <th>Needs</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Browse by genre</td>
+                  <td>Organized by FilterMusic.net's own categories (House/Dance, Techno/Trance, Jazz, Rock/Metal, etc.)</td>
+                  <td>Nothing</td>
+                </tr>
+                <tr>
+                  <td>Direct playback</td>
+                  <td>Each station plays straight from the stream URL - no extra page fetch</td>
+                  <td>Nothing</td>
+                </tr>
+                <tr>
+                  <td>Station artwork and descriptions</td>
+                  <td>For every entry, read directly from FilterMusic.net's feed</td>
+                  <td>Nothing</td>
+                </tr>
+                <tr>
+                  <td>Screensaver Image Viewer source</td>
+                  <td>FilterMusic.net artwork as a selectable screensaver source</td>
+                  <td>Jivelite-based player + Settings toggle</td>
+                </tr>
+                <tr>
+                  <td>Resilient to changes</td>
+                  <td>Falls back to last successful load if FilterMusic.net is down or the feed format changes</td>
+                  <td>Nothing</td>
+                </tr>
+                <tr>
+                  <td>Lightly cached</td>
+                  <td>Successful loads cached for 5 minutes to avoid repeated refetches</td>
+                  <td>Nothing</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </section>
 
@@ -300,15 +288,23 @@ sudo systemctl restart lyrionmusicserver</code></pre>
           <p>
             Open <strong>Settings &rarr; Advanced &rarr; FilterMusic</strong> to configure:
           </p>
-          <div class="item-list">
-            <article class="item-card">
-              <div class="item-content">
-                <div class="item-title">Show in Image Viewer</div>
-                <div class="item-description">
-                  Enable/disable the FilterMusic screensaver source
-                </div>
-              </div>
-            </article>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Setting</th>
+                  <th>What it does</th>
+                  <th>Default</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Show in Image Viewer</td>
+                  <td>Adds FilterMusic.net's artwork as a selectable screensaver "Server" source on Jivelite-based players (Squeezebox Touch/Radio, SqueezePlay)</td>
+                  <td>Off</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </section>
 
