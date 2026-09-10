@@ -98,39 +98,32 @@
                 <tr>
                   <th>Feature</th>
                   <th>What it gives you</th>
-                  <th>Needs</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
                   <td>Browse by genre</td>
                   <td>Organized by FilterMusic.net's own categories (House/Dance, Techno/Trance, Jazz, Rock/Metal, etc.)</td>
-                  <td>Nothing</td>
                 </tr>
                 <tr>
                   <td>Direct playback</td>
                   <td>Each station plays straight from the stream URL - no extra page fetch</td>
-                  <td>Nothing</td>
                 </tr>
                 <tr>
                   <td>Station artwork and descriptions</td>
                   <td>For every entry, read directly from FilterMusic.net's feed</td>
-                  <td>Nothing</td>
                 </tr>
                 <tr>
                   <td>Screensaver Image Viewer source</td>
-                  <td>FilterMusic.net artwork as a selectable screensaver source</td>
-                  <td>Jivelite-based player + Settings toggle</td>
+                  <td>FilterMusic.net artwork as a selectable screensaver source on Jivelite-based players (Squeezebox Touch/Radio, SqueezePlay), once enabled in Settings</td>
                 </tr>
                 <tr>
                   <td>Resilient to changes</td>
                   <td>Falls back to last successful load if FilterMusic.net is down or the feed format changes</td>
-                  <td>Nothing</td>
                 </tr>
                 <tr>
                   <td>Lightly cached</td>
                   <td>Successful loads cached for 5 minutes to avoid repeated refetches</td>
-                  <td>Nothing</td>
                 </tr>
               </tbody>
             </table>
@@ -288,23 +281,15 @@ sudo systemctl restart lyrionmusicserver</code></pre>
           <p>
             Open <strong>Settings &rarr; Advanced &rarr; FilterMusic</strong> to configure:
           </p>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Setting</th>
-                  <th>What it does</th>
-                  <th>Default</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>Show in Image Viewer</td>
-                  <td>Adds FilterMusic.net's artwork as a selectable screensaver "Server" source on Jivelite-based players (Squeezebox Touch/Radio, SqueezePlay)</td>
-                  <td>Off</td>
-                </tr>
-              </tbody>
-            </table>
+          <div class="item-list">
+            <article class="item-card">
+              <div class="item-content">
+                <div class="item-title">Show in Image Viewer</div>
+                <div class="item-description">
+                  Adds FilterMusic.net's artwork as a selectable screensaver "Server" source on Jivelite-based players (Squeezebox Touch/Radio, SqueezePlay). Off by default.
+                </div>
+              </div>
+            </article>
           </div>
         </section>
 
