@@ -229,8 +229,8 @@ main {
   background:
     linear-gradient(
       120deg,
-      rgba(2, 0, 36, 0.5) 0%,
-      #000 90%
+      #000 0%,
+      rgba(2, 0, 36, 0.5) 90%
     );
 
   transition: opacity 300ms ease-in-out;
@@ -543,6 +543,32 @@ main {
   padding-top: 16px;
 }
 
+.accordion-content .item-list {
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 8px;
+}
+
+.accordion-content .item-card {
+  min-height: unset;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+}
+
+.accordion-content .item-title {
+  overflow: visible;
+  white-space: normal;
+}
+
+.accordion-content .item-card:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.accordion-content .item-card:first-child,
+.accordion-content .item-card:last-child {
+  border-radius: 8px;
+}
+
 /* -------------------------------------------------------------------------- */
 /* Tables                                                                     */
 /* -------------------------------------------------------------------------- */
@@ -581,24 +607,41 @@ tr:last-child td {
 /* Screenshots                                                                */
 /* -------------------------------------------------------------------------- */
 
+.screenshots-card {
+  container-type: inline-size;
+}
+
 .screenshot-strip {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
   gap: 12px;
-  overflow-x: auto;
-  padding-bottom: 4px;
-  -webkit-overflow-scrolling: touch;
+  max-width: 716px; /* 4 * 170px max thumb + 3 * 12px gap */
+}
+
+/* Switch column count only once the row has shrunk to fit the next tier
+   at full thumb size, so thumbs shrink to fill the row instead of leaving
+   empty space right after a breakpoint. */
+@container (max-width: 352px) {
+  .screenshot-strip {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@container (max-width: 170px) {
+  .screenshot-strip {
+    grid-template-columns: 1fr;
+  }
 }
 
 .screenshot-thumb {
   display: block;
-  flex: 0 0 auto;
-  width: 180px;
+  width: 100%;
 }
 
 .screenshot-thumb img {
   display: block;
-  width: 180px;
-  height: 120px;
+  width: 100%;
+  aspect-ratio: 3 / 2;
 
   object-fit: contain;
   background: rgba(0, 0, 0, 0.5);
@@ -816,13 +859,8 @@ ul li {
     padding: 12px;
   }
 
-  .screenshot-thumb {
-    width: 140px;
-  }
-
-  .screenshot-thumb img {
-    width: 140px;
-    height: 96px;
+  .accordion-content .item-list {
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .lightbox-nav {
