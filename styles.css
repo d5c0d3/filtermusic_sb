@@ -77,13 +77,20 @@ button {
 }
 
 a {
-  color: inherit;
+  color: var(--color-blue);
   text-decoration: none;
-  transition: opacity var(--duration) var(--ease);
+  transition:
+    opacity var(--duration) var(--ease),
+    text-decoration-color var(--duration) var(--ease);
 }
 
 a:hover {
   opacity: 0.8;
+  text-decoration: underline;
+}
+
+.screenshot-thumb {
+  color: inherit;
 }
 
 img,
