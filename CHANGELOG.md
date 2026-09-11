@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.3.6 (2026-09-12)
+
+**Updated the FilterMusic logo artwork.** Replaces `html/images/fm.png` with the new logo image;
+unreferenced by any plugin code (the actual UI icon is `fm_svg.png`/`fm.svg`, set via `install.xml`), but
+bundled with the package for consistency with the docs site, which uses the same image.
+
 ## 2.3.5 (2026-09-10)
 
 **Replaced `JSON::XS::VersionOneAndTwo` with `JSON::XS`.** LMS is phasing out the
