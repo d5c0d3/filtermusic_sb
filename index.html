@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="FilterMusic plugin for Lyrion Music Server - Browse FilterMusic.net radio stations directly from LMS">
   <title>FilterMusic - LMS Plugin</title>
+  <link rel="icon" href="assets/favicon.png" type="image/png">
+  <link rel="apple-touch-icon" href="assets/favicon.png">
   <link rel="stylesheet" href="styles.css">
   <script>
     let currentWallpaper = null;
@@ -161,15 +163,18 @@
 
         <!-- Header Card -->
         <section class="card">
-          <h1><img src="assets/filtermusic-logo.svg" alt="FilterMusic" class="logo"></h1>
+          <h1 class="header-title">
+            <img src="assets/filtermusic-logo.svg" alt="FilterMusic" class="logo">
+            <span class="logo-tag">_sb &mdash; a Lyrion Music Server plugin</span>
+          </h1>
           <p class="text-secondary">
-            Browse FilterMusic.net radio stations from within Lyrion Music Server
+            Browse <a href="https://filtermusic.net">FilterMusic.net</a> radio stations from within Lyrion Music Server
           </p>
         </section>
 
         <!-- About FilterMusic.net -->
         <section class="card">
-          <h2>About FilterMusic.net</h2>
+          <h2>About <a href="https://filtermusic.net">FilterMusic.net</a></h2>
           <p>In their own words:</p>
           <p>
             <em>"High-quality internet radio stations, weekly filtered for uninterrupted
@@ -196,7 +201,7 @@
               <tbody>
                 <tr>
                   <td>Browse by genre</td>
-                  <td>Organized by FilterMusic.net's own categories (House/Dance, Techno/Trance, Jazz, Rock/Metal, etc.)</td>
+                  <td>Organized by <a href="https://filtermusic.net">FilterMusic.net</a>'s own categories (House/Dance, Techno/Trance, Jazz, Rock/Metal, etc.)</td>
                 </tr>
                 <tr>
                   <td>Direct playback</td>
@@ -204,15 +209,15 @@
                 </tr>
                 <tr>
                   <td>Station artwork and descriptions</td>
-                  <td>For every entry, read directly from FilterMusic.net's feed</td>
+                  <td>For every entry, read directly from <a href="https://filtermusic.net">FilterMusic.net</a>'s feed</td>
                 </tr>
                 <tr>
                   <td>Screensaver Image Viewer source</td>
-                  <td>FilterMusic.net artwork as a selectable screensaver source on Jivelite-based players (Squeezebox Touch/Radio, SqueezePlay), once enabled in Settings</td>
+                  <td><a href="https://filtermusic.net">FilterMusic.net</a> artwork as a selectable screensaver source on Jivelite-based players (Squeezebox Touch/Radio, SqueezePlay), once enabled in Settings</td>
                 </tr>
                 <tr>
                   <td>Resilient to changes</td>
-                  <td>Falls back to last successful load if FilterMusic.net is down or the feed format changes</td>
+                  <td>Falls back to last successful load if <a href="https://filtermusic.net">FilterMusic.net</a> is down or the feed format changes</td>
                 </tr>
                 <tr>
                   <td>Lightly cached</td>
@@ -264,13 +269,13 @@ sudo systemctl restart lyrionmusicserver</code></pre>
           <h3>Browsing stations</h3>
           <p>
             Open <strong>Radio &rarr; FilterMusic</strong> to see the complete genre list.
-            Each genre contains stations curated by FilterMusic.net, with artwork and descriptions.
+            Each genre contains stations curated by <a href="https://filtermusic.net">FilterMusic.net</a>, with artwork and descriptions.
             Tap any station to start playing immediately.
           </p>
           
           <h3>Genres</h3>
           <p>
-            From House, Trance through Jazz and Classical to Rock and  International &mdash; all matching FilterMusic.net's
+            From House, Trance through Jazz and Classical to Rock and  International &mdash; all matching <a href="https://filtermusic.net">FilterMusic.net</a>'s
             categories.
           <!--</p>-->
           <div class="accordion">
@@ -383,7 +388,7 @@ sudo systemctl restart lyrionmusicserver</code></pre>
           <h2>Screensaver Image Viewer</h2>
           <p>
             Open <strong>Settings &rarr; Advanced &rarr; FilterMusic</strong> and enable
-            <strong>Show in Image Viewer</strong> (off by default) to add FilterMusic.net's
+            <strong>Show in Image Viewer</strong> (off by default) to add <a href="https://filtermusic.net">FilterMusic.net</a>'s
             artwork as a selectable source for the screensaver Image Viewer on Jivelite-based
             players (Squeezebox Touch/Radio, SqueezePlay).
           </p>
@@ -411,7 +416,7 @@ sudo systemctl restart lyrionmusicserver</code></pre>
         <section class="card">
           <h2>Credits</h2>
           <p>
-            FilterMusic.net is created and curated by <strong>Spyros</strong>.
+            <a href="https://filtermusic.net">FilterMusic.net</a> is created and curated by <strong>Spyros</strong>.
             Every station, genre, and image this plugin displays is their work.
             When contacted about reviving the plugin, they offered immediately to help
             and built a data feed for it.
@@ -427,7 +432,7 @@ sudo systemctl restart lyrionmusicserver</code></pre>
           <p>
             MIT - see <a href="LICENSE">LICENSE</a>.
             That covers this plugin's own code; the station data and artwork it reads
-            from FilterMusic.net remain FilterMusic.net's own content.
+            from <a href="https://filtermusic.net">FilterMusic.net</a> remain <a href="https://filtermusic.net">FilterMusic.net</a>'s own content.
           </p>
         </section>
 

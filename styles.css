@@ -24,7 +24,7 @@
   --color-white: #fff;
 
   --text-color: #e6e6e6;
-  --card: rgba(0, 0, 0, 0.9);
+  --card: rgba(0, 0, 0, 0.78);
 
   --max-width: 780px;
   --radius: 12px;
@@ -118,6 +118,21 @@ h1 {
   display: block;
   height: 40px;
   width: auto;
+}
+
+.header-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 1px;
+}
+
+.logo-tag {
+  font-family: var(--font-sans);
+  font-size: 1.25rem;
+  font-weight: 500;
+  opacity: 0.55;
+  white-space: nowrap;
 }
 
 h2 {
