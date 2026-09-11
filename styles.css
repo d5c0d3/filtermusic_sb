@@ -526,7 +526,7 @@ main {
   flex: 0 0 auto;
 
   background:
-    url("/filtermusic_sb/assets/icons/chevron-down.svg")
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")
     center / 16px 16px
     no-repeat;
 
