@@ -185,7 +185,6 @@
           <p class="text-secondary">
             Browse <a href="https://filtermusic.net">FilterMusic.net</a> radio stations from within Lyrion Music Server
           </p>
-          <div class="repo-box"><code>https://d5c0d3.github.io/filtermusic_sb/repo.xml</code></div>
         </section>
 
         <!-- About FilterMusic.net -->
@@ -208,45 +207,32 @@
 
           <div class="feature-grid">
             <div class="feature-tile">
-              <div class="feature-tile-title">Browse by genre</div>
-              <div class="feature-tile-desc">Organized by FilterMusic.net's own categories (House/Dance, Techno/Trance, Jazz, Rock/Metal, etc.)</div>
+              <div class="feature-tile-title">Browse by fm's genre categories.</div>
+              <div class="feature-tile-desc">House/Dance, Techno/Trance, Jazz, Rock/Metal and 11 more &mdash; FilterMusic.net's own categories.</div>
             </div>
             <div class="feature-tile">
-              <div class="feature-tile-title">Direct playback</div>
-              <div class="feature-tile-desc">Each station plays straight from the stream URL - no extra page fetch</div>
+              <div class="feature-tile-title">Artwork & descriptions</div>
+              <div class="feature-tile-desc">Read directly from FilterMusic.net's own feed, for every station.</div>
             </div>
             <div class="feature-tile">
-              <div class="feature-tile-title">Station artwork and descriptions</div>
-              <div class="feature-tile-desc">For every entry, read directly from FilterMusic.net's feed</div>
-            </div>
-            <div class="feature-tile">
-              <div class="feature-tile-title">Screensaver Image Viewer source</div>
-              <div class="feature-tile-desc">FilterMusic.net artwork as a selectable screensaver source on Jivelite-based players (Squeezebox Touch/Radio, SqueezePlay), once enabled in Settings</div>
-            </div>
-            <div class="feature-tile">
-              <div class="feature-tile-title">Resilient to changes</div>
-              <div class="feature-tile-desc">Falls back to last successful load if FilterMusic.net is down or the feed format changes</div>
-            </div>
-            <div class="feature-tile">
-              <div class="feature-tile-title">Lightly cached</div>
-              <div class="feature-tile-desc">Successful loads cached for 5 minutes to avoid repeated refetches</div>
+              <div class="feature-tile-title">Screensaver source</div>
+              <div class="feature-tile-desc">Artwork as a selectable screensaver on Jivelite players, once enabled in Settings.</div>
             </div>
           </div>
         </section>
 
-        <!-- Quick Start -->
+        <!-- Setup -->
         <section class="card" id="install">
-          <h2>Quick start</h2>
+          <h2>Setup</h2>
+          <div class="repo-box"><code>https://d5c0d3.github.io/filtermusic_sb/repo.xml</code></div>
           <div class="step-grid">
             <div class="step-tile">
               <div class="step-number">01</div>
-              <div class="step-text">In LMS: <strong>Settings &rarr; Plugins &rarr; Additional Repositories</strong>, add:
-                <pre><code>https://d5c0d3.github.io/filtermusic_sb/repo.xml</code></pre>
-              </div>
+              <div class="step-text">Settings &rarr; Plugins &rarr; Additional Repositories, add the repo URL</div>
             </div>
             <div class="step-tile">
               <div class="step-number">02</div>
-              <div class="step-text">Install the <strong>FilterMusic</strong> plugin from the plugin list</div>
+              <div class="step-text">Install FilterMusic from the plugin list</div>
             </div>
             <div class="step-tile">
               <div class="step-number">03</div>
@@ -254,14 +240,11 @@
             </div>
             <div class="step-tile">
               <div class="step-number">04</div>
-              <div class="step-text">Browse to <strong>Radio &rarr; FilterMusic [fm]</strong> to start exploring stations</div>
+              <div class="step-text">Browse to Radio &rarr; FilterMusic [fm]</div>
             </div>
           </div>
-        </section>
 
-        <!-- Manual Installation -->
-        <section class="card">
-          <h2>Manual installation</h2>
+          <h3>Manual</h3>
           <p>
             Download <code>FilterMusic.zip</code> from the <a href="https://github.com/d5c0d3/filtermusic_sb">repository</a>, unzip it into your LMS <code>Plugins/</code> directory so it sits as <code>Plugins/FilterMusic/</code>, and restart:
           </p>
@@ -271,31 +254,9 @@ sudo chown -R squeezeboxserver:nogroup /var/lib/squeezeboxserver/Plugins/FilterM
 sudo systemctl restart lyrionmusicserver</code></pre>
         </section>
 
-        <!-- Requirements -->
-        <section class="card">
-          <h2>Requirements</h2>
-          <ul>
-            <li><strong>Lyrion Music Server / Logitech Media Server 8.0 or newer</strong></li>
-            <li><strong>Station logos need LMS 9.1.0+</strong> (WebP support via image proxy)</li>
-          </ul>
-        </section>
-
-        <!-- Using It -->
-        <section class="card">
-          <h2>Using it</h2>
-          
-          <h3>Browsing stations</h3>
-          <p>
-            Open <strong>Radio &rarr; FilterMusic [fm]</strong> to see the complete genre list.
-            Each genre contains stations curated by FilterMusic.net, with artwork and descriptions.
-            Tap any station to start playing immediately.
-          </p>
-          
-        </section>
-
         <!-- Genres -->
         <section class="card" id="genres">
-          <h2>Genres</h2>
+          <h2>Genre Categories</h2>
           <p class="text-secondary">
             From House, Trance through Jazz and Classical to Rock and International &mdash; all matching FilterMusic.net's
             categories.
@@ -340,7 +301,7 @@ sudo systemctl restart lyrionmusicserver</code></pre>
 
         <!-- Screensaver Feature -->
         <section class="card">
-          <h2>Screensaver Image Viewer</h2>
+          <h2>Screensaver</h2>
           <p>
             Open <strong>Settings &rarr; Advanced &rarr; FilterMusic</strong> and enable
             <strong>Show in Image Viewer</strong> (off by default) to add FilterMusic.net's
@@ -355,7 +316,7 @@ sudo systemctl restart lyrionmusicserver</code></pre>
 
         <!-- Notes & Limitations -->
         <section class="card">
-          <h2>Notes & limitations</h2>
+          <h2>Known Limitations</h2>
           <p>
             <strong>Station logos need LMS 9.1.0 or newer.</strong> The feed's logo URLs are WebP.
             LMS's artwork resizer can't decode WebP on versions older than 9.1.0.

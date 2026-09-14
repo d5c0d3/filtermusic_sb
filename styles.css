@@ -193,7 +193,6 @@ p {
   position: relative;
   min-height: 100vh;
   isolation: isolate;
-  overflow: hidden;
   background: #000;
 }
 
@@ -294,8 +293,8 @@ main {
 
 .topnav-brand {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  align-items: flex-end;
+  gap: 4px;
   color: inherit;
 }
 
@@ -431,7 +430,7 @@ main {
 }
 
 .genre-pill {
-  padding: 9px 18px;
+  padding: 5px 12px;
 
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 999px;
