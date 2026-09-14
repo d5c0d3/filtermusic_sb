@@ -178,14 +178,16 @@
     }
 
     // Copy-to-clipboard buttons: each button names the id of the code
-    // element holding the text it copies via data-copy-target.
+    // element holding the text it copies via data-copy-target. Success
+    // is shown via an "is-copied" class (styles.css swaps the icon),
+    // rather than the hidden attribute - some browsers are inconsistent
+    // about applying [hidden]'s default styling to inline <svg>.
     function initCopyButtons() {
       document.querySelectorAll('.copy-btn[data-copy-target]').forEach(button => {
         const target = document.getElementById(button.dataset.copyTarget);
         if (!target) return;
 
-        const copyIcon = button.querySelector('.icon-copy');
-        const checkIcon = button.querySelector('.icon-check');
+        let revertTimer = null;
 
         button.addEventListener('click', async () => {
           const ok = await copyToClipboard(target.textContent.trim());
@@ -193,11 +195,10 @@
             console.log('Could not copy text: all copy methods failed');
             return;
           }
-          copyIcon.hidden = true;
-          checkIcon.hidden = false;
-          setTimeout(() => {
-            copyIcon.hidden = false;
-            checkIcon.hidden = true;
+          clearTimeout(revertTimer);
+          button.classList.add('is-copied');
+          revertTimer = setTimeout(() => {
+            button.classList.remove('is-copied');
           }, 1500);
         });
       });
@@ -299,7 +300,7 @@
           <p class="repo-line">Repo: <code id="repoUrl">https://d5c0d3.github.io/filtermusic_sb/repo.xml</code>
             <button type="button" class="copy-btn" data-copy-target="repoUrl" aria-label="Copy repo URL">
               <svg class="icon-copy" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-              <svg class="icon-check" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" hidden><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <svg class="icon-check" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
             </button>
           </p>
           <div class="step-grid">
@@ -335,7 +336,7 @@ sudo chown -R squeezeboxserver:nogroup /var/lib/squeezeboxserver/Plugins/FilterM
 sudo systemctl restart lyrionmusicserver</code></pre>
             <button type="button" class="copy-btn code-block-copy" data-copy-target="manualInstallCmd" aria-label="Copy install commands">
               <svg class="icon-copy" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-              <svg class="icon-check" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" hidden><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <svg class="icon-check" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
             </button>
           </div>
         </section>

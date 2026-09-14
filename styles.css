@@ -399,8 +399,16 @@ main {
   display: block;
 }
 
-.copy-btn svg[hidden] {
+.copy-btn .icon-check {
   display: none;
+}
+
+.copy-btn.is-copied .icon-copy {
+  display: none;
+}
+
+.copy-btn.is-copied .icon-check {
+  display: block;
 }
 
 .code-block {
