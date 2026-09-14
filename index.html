@@ -151,6 +151,21 @@
 
   <div class="app">
 
+    <!-- Top nav -->
+    <nav class="topnav" id="topnav">
+      <a class="topnav-brand" href="#" aria-label="FilterMusic_sb home">
+        <img src="assets/filtermusic-logo.svg" alt="FilterMusic" class="topnav-logo">
+        <span class="topnav-wordmark">_sb</span>
+      </a>
+      <div class="topnav-links">
+        <a href="#features">Features</a>
+        <a href="#install">Install</a>
+        <a href="#genres">Genres</a>
+        <a href="#screenshots">Screenshots</a>
+        <a class="topnav-github" href="https://github.com/d5c0d3/filtermusic_sb" target="_blank" rel="noopener">GitHub</a>
+      </div>
+    </nav>
+
     <!-- Wallpaper -->
     <div class="wallpaper" id="wallpaper" aria-hidden="true">
       <div class="wallpaper-container loaded"></div>
@@ -170,6 +185,7 @@
           <p class="text-secondary">
             Browse <a href="https://filtermusic.net">FilterMusic.net</a> radio stations from within Lyrion Music Server
           </p>
+          <div class="repo-box"><code>https://d5c0d3.github.io/filtermusic_sb/repo.xml</code></div>
         </section>
 
         <!-- About FilterMusic.net -->
@@ -187,58 +203,60 @@
         </section>
 
         <!-- Features at a Glance -->
-        <section class="card">
+        <section class="card" id="features">
           <h2>Features at a glance</h2>
 
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Feature</th>
-                  <th>What it gives you</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>Browse by genre</td>
-                  <td>Organized by FilterMusic.net's own categories (House/Dance, Techno/Trance, Jazz, Rock/Metal, etc.)</td>
-                </tr>
-                <tr>
-                  <td>Direct playback</td>
-                  <td>Each station plays straight from the stream URL - no extra page fetch</td>
-                </tr>
-                <tr>
-                  <td>Station artwork and descriptions</td>
-                  <td>For every entry, read directly from FilterMusic.net's feed</td>
-                </tr>
-                <tr>
-                  <td>Screensaver Image Viewer source</td>
-                  <td>FilterMusic.net artwork as a selectable screensaver source on Jivelite-based players (Squeezebox Touch/Radio, SqueezePlay), once enabled in Settings</td>
-                </tr>
-                <tr>
-                  <td>Resilient to changes</td>
-                  <td>Falls back to last successful load if FilterMusic.net is down or the feed format changes</td>
-                </tr>
-                <tr>
-                  <td>Lightly cached</td>
-                  <td>Successful loads cached for 5 minutes to avoid repeated refetches</td>
-                </tr>
-              </tbody>
-            </table>
+          <div class="feature-grid">
+            <div class="feature-tile">
+              <div class="feature-tile-title">Browse by genre</div>
+              <div class="feature-tile-desc">Organized by FilterMusic.net's own categories (House/Dance, Techno/Trance, Jazz, Rock/Metal, etc.)</div>
+            </div>
+            <div class="feature-tile">
+              <div class="feature-tile-title">Direct playback</div>
+              <div class="feature-tile-desc">Each station plays straight from the stream URL - no extra page fetch</div>
+            </div>
+            <div class="feature-tile">
+              <div class="feature-tile-title">Station artwork and descriptions</div>
+              <div class="feature-tile-desc">For every entry, read directly from FilterMusic.net's feed</div>
+            </div>
+            <div class="feature-tile">
+              <div class="feature-tile-title">Screensaver Image Viewer source</div>
+              <div class="feature-tile-desc">FilterMusic.net artwork as a selectable screensaver source on Jivelite-based players (Squeezebox Touch/Radio, SqueezePlay), once enabled in Settings</div>
+            </div>
+            <div class="feature-tile">
+              <div class="feature-tile-title">Resilient to changes</div>
+              <div class="feature-tile-desc">Falls back to last successful load if FilterMusic.net is down or the feed format changes</div>
+            </div>
+            <div class="feature-tile">
+              <div class="feature-tile-title">Lightly cached</div>
+              <div class="feature-tile-desc">Successful loads cached for 5 minutes to avoid repeated refetches</div>
+            </div>
           </div>
         </section>
 
         <!-- Quick Start -->
-        <section class="card">
+        <section class="card" id="install">
           <h2>Quick start</h2>
-          <ol>
-            <li>In LMS: <strong>Settings &rarr; Plugins &rarr; Additional Repositories</strong>, add:
-              <pre><code>https://d5c0d3.github.io/filtermusic_sb/repo.xml</code></pre>
-            </li>
-            <li>Install the <strong>FilterMusic</strong> plugin from the plugin list</li>
-            <li>Restart LMS</li>
-            <li>Browse to <strong>Radio &rarr; FilterMusic [fm]</strong> to start exploring stations</li>
-          </ol>
+          <div class="step-grid">
+            <div class="step-tile">
+              <div class="step-number">01</div>
+              <div class="step-text">In LMS: <strong>Settings &rarr; Plugins &rarr; Additional Repositories</strong>, add:
+                <pre><code>https://d5c0d3.github.io/filtermusic_sb/repo.xml</code></pre>
+              </div>
+            </div>
+            <div class="step-tile">
+              <div class="step-number">02</div>
+              <div class="step-text">Install the <strong>FilterMusic</strong> plugin from the plugin list</div>
+            </div>
+            <div class="step-tile">
+              <div class="step-number">03</div>
+              <div class="step-text">Restart LMS</div>
+            </div>
+            <div class="step-tile">
+              <div class="step-number">04</div>
+              <div class="step-text">Browse to <strong>Radio &rarr; FilterMusic [fm]</strong> to start exploring stations</div>
+            </div>
+          </div>
         </section>
 
         <!-- Manual Installation -->
@@ -273,99 +291,36 @@ sudo systemctl restart lyrionmusicserver</code></pre>
             Tap any station to start playing immediately.
           </p>
           
-          <h3>Genres</h3>
-          <p>
-            From House, Trance through Jazz and Classical to Rock and  International &mdash; all matching FilterMusic.net's
+        </section>
+
+        <!-- Genres -->
+        <section class="card" id="genres">
+          <h2>Genres</h2>
+          <p class="text-secondary">
+            From House, Trance through Jazz and Classical to Rock and International &mdash; all matching FilterMusic.net's
             categories.
-          <!--</p>-->
-          <div class="accordion">
-            <details>
-              <summary>Click here to see all 15 categories</summary>
-              <div class="accordion-content">
-                <div class="item-list">
-                  <article class="item-card">
-                    <div class="item-content">
-                      <div class="item-title">House/Dance</div>
-                    </div>
-                  </article>
-                  <article class="item-card">
-                    <div class="item-content">
-                      <div class="item-title">Techno/Trance</div>
-                    </div>
-                  </article>
-                  <article class="item-card">
-                    <div class="item-content">
-                      <div class="item-title">Electronica/Industrial</div>
-                    </div>
-                  </article>
-                  <article class="item-card">
-                    <div class="item-content">
-                      <div class="item-title">Breaks/DrumnBass</div>
-                    </div>
-                  </article>
-                  <article class="item-card">
-                    <div class="item-content">
-                      <div class="item-title">HipHop/Rap</div>
-                    </div>
-                  </article>
-                  <article class="item-card">
-                    <div class="item-content">
-                      <div class="item-title">Reggae/Dub/Dancehall</div>
-                    </div>
-                  </article>
-                  <article class="item-card">
-                    <div class="item-content">
-                      <div class="item-title">Funk/Soul/Disco</div>
-                    </div>
-                  </article>
-                  <article class="item-card">
-                    <div class="item-content">
-                      <div class="item-title">Lounge Grooves</div>
-                    </div>
-                  </article>
-                  <article class="item-card">
-                    <div class="item-content">
-                      <div class="item-title">Downtempo/Ambient</div>
-                    </div>
-                  </article>
-                  <article class="item-card">
-                    <div class="item-content">
-                      <div class="item-title">Various/Mainstream</div>
-                    </div>
-                  </article>
-                  <article class="item-card">
-                    <div class="item-content">
-                      <div class="item-title">60s/70s/80s/90s</div>
-                    </div>
-                  </article>
-                  <article class="item-card">
-                    <div class="item-content">
-                      <div class="item-title">Classical</div>
-                    </div>
-                  </article>
-                  <article class="item-card">
-                    <div class="item-content">
-                      <div class="item-title">Jazz</div>
-                    </div>
-                  </article>
-                  <article class="item-card">
-                    <div class="item-content">
-                      <div class="item-title">Rock/Metal</div>
-                    </div>
-                  </article>
-                  <article class="item-card">
-                    <div class="item-content">
-                      <div class="item-title">International/Ethnic</div>
-                    </div>
-                  </article>
-                </div>
-              </div>
-            </details>
+          </p>
+          <div class="genre-pills">
+            <span class="genre-pill">House/Dance</span>
+            <span class="genre-pill">Techno/Trance</span>
+            <span class="genre-pill">Electronica/Industrial</span>
+            <span class="genre-pill">Breaks/DrumnBass</span>
+            <span class="genre-pill">HipHop/Rap</span>
+            <span class="genre-pill">Reggae/Dub/Dancehall</span>
+            <span class="genre-pill">Funk/Soul/Disco</span>
+            <span class="genre-pill">Lounge Grooves</span>
+            <span class="genre-pill">Downtempo/Ambient</span>
+            <span class="genre-pill">Various/Mainstream</span>
+            <span class="genre-pill">60s/70s/80s/90s</span>
+            <span class="genre-pill">Classical</span>
+            <span class="genre-pill">Jazz</span>
+            <span class="genre-pill">Rock/Metal</span>
+            <span class="genre-pill">International/Ethnic</span>
           </div>
         </section>
 
         <!-- Screenshots -->
-        <section class="card screenshots-card">
+        <section class="card screenshots-card" id="screenshots">
           <h2>Screenshots</h2>
           <div class="screenshot-strip" id="screenshotStrip">
             <a class="screenshot-thumb" href="assets/screenshots/jivelite-stations.png" data-caption="Station list on Jivelite hardware (Squeezebox Touch/Radio)">
