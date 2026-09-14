@@ -146,6 +146,37 @@
 
     document.addEventListener('DOMContentLoaded', initScreenshotLightbox);
 
+    // Copy text to the clipboard, falling back to the legacy
+    // execCommand('copy') path for contexts where the async Clipboard
+    // API is unavailable or blocked (e.g. non-secure origins, some
+    // embedded webviews). Returns whether the copy actually succeeded.
+    async function copyToClipboard(text) {
+      if (navigator.clipboard && window.isSecureContext) {
+        try {
+          await navigator.clipboard.writeText(text);
+          return true;
+        } catch (error) {
+          console.log('navigator.clipboard.writeText failed, falling back:', error);
+        }
+      }
+
+      try {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+        const ok = document.execCommand('copy');
+        document.body.removeChild(textarea);
+        return ok;
+      } catch (error) {
+        console.log('execCommand copy fallback failed:', error);
+        return false;
+      }
+    }
+
     // Copy-to-clipboard buttons: each button names the id of the code
     // element holding the text it copies via data-copy-target.
     function initCopyButtons() {
@@ -157,17 +188,17 @@
         const checkIcon = button.querySelector('.icon-check');
 
         button.addEventListener('click', async () => {
-          try {
-            await navigator.clipboard.writeText(target.textContent.trim());
-            copyIcon.hidden = true;
-            checkIcon.hidden = false;
-            setTimeout(() => {
-              copyIcon.hidden = false;
-              checkIcon.hidden = true;
-            }, 1500);
-          } catch (error) {
-            console.log('Could not copy text:', error);
+          const ok = await copyToClipboard(target.textContent.trim());
+          if (!ok) {
+            console.log('Could not copy text: all copy methods failed');
+            return;
           }
+          copyIcon.hidden = true;
+          checkIcon.hidden = false;
+          setTimeout(() => {
+            copyIcon.hidden = false;
+            checkIcon.hidden = true;
+          }, 1500);
         });
       });
     }
