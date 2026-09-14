@@ -29,6 +29,7 @@
   --max-width: 780px;
   --radius: 12px;
   --gap: 2px;
+  --nav-height: 50px;
 
   --ease: cubic-bezier(0.4, 0, 0.2, 1);
   --duration: 150ms;
@@ -193,7 +194,6 @@ p {
   position: relative;
   min-height: 100vh;
   isolation: isolate;
-  overflow: hidden;
   background: #000;
 }
 
@@ -201,7 +201,7 @@ p {
   position: relative;
   z-index: 1;
   min-height: 100vh;
-  padding: 16px 16px 16px 32px;
+  padding: 16px 16px 40vh 32px;
   text-align: left;
 }
 
@@ -269,6 +269,232 @@ main {
 .user-idle .wallpaper-cover {
   opacity: 0;
   transition: opacity 500ms ease-in-out;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Top nav                                                                    */
+/* -------------------------------------------------------------------------- */
+
+.topnav {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+
+  padding: 8px 32px;
+
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.topnav-brand {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  color: inherit;
+}
+
+.topnav-brand:hover {
+  opacity: 0.8;
+  text-decoration: none;
+}
+
+.topnav-logo {
+  height: 24px;
+  width: auto;
+}
+
+.topnav-wordmark {
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  font-weight: 500;
+  opacity: 0.55;
+}
+
+#features,
+#install,
+#genres,
+#screenshots {
+  scroll-margin-top: var(--nav-height);
+}
+
+.topnav-links {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.topnav-links a {
+  color: var(--text-color);
+  font-size: 0.9375rem;
+  opacity: 0.75;
+}
+
+.topnav-links a:hover {
+  opacity: 1;
+  text-decoration: none;
+}
+
+.topnav-github {
+  padding: 6px 16px !important;
+
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 999px;
+
+  opacity: 1 !important;
+}
+
+.topnav-github:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Repo line                                                                  */
+/* -------------------------------------------------------------------------- */
+
+.repo-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.repo-line code {
+  font-size: 0.875rem;
+  word-break: break-all;
+}
+
+.copy-btn {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+
+  width: 28px;
+  height: 28px;
+  padding: 0;
+
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+
+  background: transparent;
+  color: var(--text-color);
+
+  transition:
+    background-color var(--duration) var(--ease),
+    border-color var(--duration) var(--ease);
+}
+
+.copy-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.copy-btn svg {
+  display: block;
+}
+
+.copy-btn .icon-check {
+  display: none;
+}
+
+.copy-btn.is-copied .icon-copy {
+  display: none;
+}
+
+.copy-btn.is-copied .icon-check {
+  display: block;
+}
+
+.code-block {
+  position: relative;
+}
+
+.code-block-copy {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+
+  background: rgba(0, 0, 0, 0.6);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Feature tile grid                                                         */
+/* -------------------------------------------------------------------------- */
+
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--gap);
+}
+
+.feature-tile {
+  padding: 28px;
+  background: var(--card);
+}
+
+.feature-tile-title {
+  margin-bottom: 8px;
+
+  font-family: "Montserrat", var(--font-sans);
+  font-weight: 500;
+  font-size: 1rem;
+}
+
+.feature-tile-desc {
+  font-size: 0.875rem;
+  opacity: 0.55;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Quick start step grid                                                     */
+/* -------------------------------------------------------------------------- */
+
+.step-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+}
+
+.step-number {
+  margin-bottom: 8px;
+
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-blue);
+}
+
+.step-text {
+  font-size: 0.9375rem;
+}
+
+.step-text pre {
+  margin-top: 8px;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Genre pills                                                               */
+/* -------------------------------------------------------------------------- */
+
+.genre-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.genre-pill {
+  padding: 5px 12px;
+
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 999px;
+
+  font-size: 13px;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -897,6 +1123,36 @@ ul li {
   .lightbox-next {
     right: 8px;
   }
+
+  .topnav {
+    padding: 8px 16px;
+    gap: 8px;
+  }
+
+  .topnav-links {
+    gap: 12px;
+  }
+
+  .topnav-links a {
+    font-size: 0.8125rem;
+  }
+
+  .topnav-github {
+    padding: 5px 12px !important;
+  }
+
+  .feature-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .feature-tile {
+    padding: 20px;
+  }
+
+  .step-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
 }
 
 @media (max-width: 639px) {
@@ -910,6 +1166,18 @@ ul li {
 
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 3;
+  }
+
+  .topnav {
+    flex-wrap: wrap;
+    row-gap: 8px;
+  }
+
+  .topnav-links {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    row-gap: 6px;
+    width: 100%;
   }
 }
 
