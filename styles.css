@@ -355,20 +355,10 @@ main {
 }
 
 /* -------------------------------------------------------------------------- */
-/* Repo box                                                                   */
+/* Repo line                                                                  */
 /* -------------------------------------------------------------------------- */
 
-.repo-box {
-  padding: 14px 20px;
-
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 10px;
-}
-
-.repo-box code {
-  background: transparent;
-  padding: 0;
+.repo-line code {
   font-size: 0.875rem;
   word-break: break-all;
 }
