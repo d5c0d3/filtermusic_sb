@@ -50,7 +50,6 @@ html {
   background: #000;
   color-scheme: dark;
   -webkit-text-size-adjust: 100%;
-  scroll-padding-top: var(--nav-height);
 }
 
 body {
@@ -202,7 +201,7 @@ p {
   position: relative;
   z-index: 1;
   min-height: 100vh;
-  padding: 16px 16px 16px 32px;
+  padding: 16px 16px 40vh 32px;
   text-align: left;
 }
 
@@ -398,6 +397,10 @@ main {
 
 .copy-btn svg {
   display: block;
+}
+
+.copy-btn svg[hidden] {
+  display: none;
 }
 
 .code-block {
