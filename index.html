@@ -145,6 +145,26 @@
     }
 
     document.addEventListener('DOMContentLoaded', initScreenshotLightbox);
+
+    // Copy the repo.xml URL to the clipboard from the Quick start section.
+    function initCopyRepoUrl() {
+      const button = document.getElementById('copyRepoUrl');
+      const urlEl = document.getElementById('repoUrl');
+      if (!button || !urlEl) return;
+
+      button.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(urlEl.textContent.trim());
+          const original = button.textContent;
+          button.textContent = 'Copied';
+          setTimeout(() => { button.textContent = original; }, 1500);
+        } catch (error) {
+          console.log('Could not copy repo URL:', error);
+        }
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', initCopyRepoUrl);
   </script>
 </head>
 <body>
@@ -224,7 +244,7 @@
         <!-- Quick Start -->
         <section class="card" id="install">
           <h2>Quick start</h2>
-          <p class="repo-line">Repo: <code>https://d5c0d3.github.io/filtermusic_sb/repo.xml</code></p>
+          <p class="repo-line">Repo: <code id="repoUrl">https://d5c0d3.github.io/filtermusic_sb/repo.xml</code> <button type="button" class="copy-btn" id="copyRepoUrl" aria-label="Copy repo URL">Copy</button></p>
           <div class="step-grid">
             <div class="step-tile">
               <div class="step-number">01</div>

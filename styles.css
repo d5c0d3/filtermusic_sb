@@ -29,7 +29,7 @@
   --max-width: 780px;
   --radius: 12px;
   --gap: 2px;
-  --nav-height: 64px;
+  --nav-height: 50px;
 
   --ease: cubic-bezier(0.4, 0, 0.2, 1);
   --duration: 150ms;
@@ -286,7 +286,7 @@ main {
   justify-content: space-between;
   gap: 16px;
 
-  padding: 12px 32px;
+  padding: 8px 32px;
 
   background: rgba(0, 0, 0, 0.85);
   backdrop-filter: blur(10px);
@@ -358,9 +358,36 @@ main {
 /* Repo line                                                                  */
 /* -------------------------------------------------------------------------- */
 
+.repo-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
 .repo-line code {
   font-size: 0.875rem;
   word-break: break-all;
+}
+
+.copy-btn {
+  padding: 3px 10px;
+
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+
+  background: transparent;
+  color: var(--text-color);
+  font-size: 0.8125rem;
+
+  transition:
+    background-color var(--duration) var(--ease),
+    border-color var(--duration) var(--ease);
+}
+
+.copy-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.4);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1065,7 +1092,7 @@ ul li {
   }
 
   .topnav {
-    padding: 10px 16px;
+    padding: 8px 16px;
     gap: 8px;
   }
 
@@ -1121,14 +1148,14 @@ ul li {
   }
 
   html {
-    scroll-padding-top: 110px;
+    scroll-padding-top: 84px;
   }
 
   #features,
   #install,
   #genres,
   #screenshots {
-    scroll-margin-top: 110px;
+    scroll-margin-top: 84px;
   }
 }
 
