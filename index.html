@@ -146,25 +146,46 @@
 
     document.addEventListener('DOMContentLoaded', initScreenshotLightbox);
 
-    // Copy the repo.xml URL to the clipboard from the Quick start section.
-    function initCopyRepoUrl() {
-      const button = document.getElementById('copyRepoUrl');
-      const urlEl = document.getElementById('repoUrl');
-      if (!button || !urlEl) return;
+    // Copy-to-clipboard buttons: each button names the id of the code
+    // element holding the text it copies via data-copy-target.
+    function initCopyButtons() {
+      document.querySelectorAll('.copy-btn[data-copy-target]').forEach(button => {
+        const target = document.getElementById(button.dataset.copyTarget);
+        if (!target) return;
 
-      button.addEventListener('click', async () => {
-        try {
-          await navigator.clipboard.writeText(urlEl.textContent.trim());
-          const original = button.textContent;
-          button.textContent = 'Copied';
-          setTimeout(() => { button.textContent = original; }, 1500);
-        } catch (error) {
-          console.log('Could not copy repo URL:', error);
-        }
+        const copyIcon = button.querySelector('.icon-copy');
+        const checkIcon = button.querySelector('.icon-check');
+
+        button.addEventListener('click', async () => {
+          try {
+            await navigator.clipboard.writeText(target.textContent.trim());
+            copyIcon.hidden = true;
+            checkIcon.hidden = false;
+            setTimeout(() => {
+              copyIcon.hidden = false;
+              checkIcon.hidden = true;
+            }, 1500);
+          } catch (error) {
+            console.log('Could not copy text:', error);
+          }
+        });
       });
     }
 
-    document.addEventListener('DOMContentLoaded', initCopyRepoUrl);
+    document.addEventListener('DOMContentLoaded', initCopyButtons);
+
+    // Measure the sticky nav's actual rendered height so anchor-linked
+    // sections (scroll-margin-top/scroll-padding-top, see styles.css)
+    // land flush under it instead of guessing a fixed pixel value that
+    // drifts whenever the nav's own padding/breakpoints change.
+    function updateNavHeight() {
+      const nav = document.getElementById('topnav');
+      if (!nav) return;
+      document.documentElement.style.setProperty('--nav-height', nav.offsetHeight + 'px');
+    }
+
+    document.addEventListener('DOMContentLoaded', updateNavHeight);
+    window.addEventListener('resize', updateNavHeight);
   </script>
 </head>
 <body>
@@ -244,7 +265,12 @@
         <!-- Quick Start -->
         <section class="card" id="install">
           <h2>Quick start</h2>
-          <p class="repo-line">Repo: <code id="repoUrl">https://d5c0d3.github.io/filtermusic_sb/repo.xml</code> <button type="button" class="copy-btn" id="copyRepoUrl" aria-label="Copy repo URL">Copy</button></p>
+          <p class="repo-line">Repo: <code id="repoUrl">https://d5c0d3.github.io/filtermusic_sb/repo.xml</code>
+            <button type="button" class="copy-btn" data-copy-target="repoUrl" aria-label="Copy repo URL">
+              <svg class="icon-copy" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+              <svg class="icon-check" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" hidden><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </button>
+          </p>
           <div class="step-grid">
             <div class="step-tile">
               <div class="step-number">01</div>
@@ -271,10 +297,16 @@
           <p>
             Download <code>FilterMusic.zip</code> from the <a href="https://github.com/d5c0d3/filtermusic_sb">repository</a>, unzip it into your LMS <code>Plugins/</code> directory so it sits as <code>Plugins/FilterMusic/</code>, and restart:
           </p>
-          <pre><code>sudo rm -rf /var/lib/squeezeboxserver/Plugins/FilterMusic
+          <div class="code-block">
+            <pre><code id="manualInstallCmd">sudo rm -rf /var/lib/squeezeboxserver/Plugins/FilterMusic
 sudo unzip FilterMusic.zip -d /var/lib/squeezeboxserver/Plugins/
 sudo chown -R squeezeboxserver:nogroup /var/lib/squeezeboxserver/Plugins/FilterMusic
 sudo systemctl restart lyrionmusicserver</code></pre>
+            <button type="button" class="copy-btn code-block-copy" data-copy-target="manualInstallCmd" aria-label="Copy install commands">
+              <svg class="icon-copy" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+              <svg class="icon-check" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" hidden><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </button>
+          </div>
         </section>
 
         <!-- Genres -->

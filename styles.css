@@ -371,14 +371,20 @@ main {
 }
 
 .copy-btn {
-  padding: 3px 10px;
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+
+  width: 28px;
+  height: 28px;
+  padding: 0;
 
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 6px;
 
   background: transparent;
   color: var(--text-color);
-  font-size: 0.8125rem;
 
   transition:
     background-color var(--duration) var(--ease),
@@ -388,6 +394,22 @@ main {
 .copy-btn:hover {
   background: rgba(255, 255, 255, 0.08);
   border-color: rgba(255, 255, 255, 0.4);
+}
+
+.copy-btn svg {
+  display: block;
+}
+
+.code-block {
+  position: relative;
+}
+
+.code-block-copy {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+
+  background: rgba(0, 0, 0, 0.6);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1145,17 +1167,6 @@ ul li {
     justify-content: flex-end;
     row-gap: 6px;
     width: 100%;
-  }
-
-  html {
-    scroll-padding-top: 84px;
-  }
-
-  #features,
-  #install,
-  #genres,
-  #screenshots {
-    scroll-margin-top: 84px;
   }
 }
 
