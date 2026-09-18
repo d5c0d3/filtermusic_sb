@@ -130,17 +130,29 @@ h1 {
 
 .header-title {
   display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  gap: 1px;
+  flex-direction: column;
+  gap: 6px;
 }
 
-.logo-tag {
+.header-title-brand {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.logo-suffix {
   font-family: var(--font-sans);
   font-size: 1.25rem;
   font-weight: 500;
   opacity: 0.55;
   white-space: nowrap;
+}
+
+.header-subtitle {
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  font-weight: 500;
+  opacity: 0.55;
 }
 
 h2 {
