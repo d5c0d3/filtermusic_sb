@@ -218,6 +218,39 @@
 
     document.addEventListener('DOMContentLoaded', updateNavHeight);
     window.addEventListener('resize', updateNavHeight);
+
+    // Idle presentation: after a period of no user activity, hide the
+    // main content and let the background wallpaper show through (see
+    // .user-idle in styles.css), keeping the topnav visible. Any
+    // mouse/keyboard/scroll activity resets the countdown; a click
+    // wakes it immediately.
+    function initIdlePresentation() {
+      const IDLE_DELAY_MS = 30000;
+      const app = document.querySelector('.app');
+      if (!app) return;
+
+      let idleTimer = null;
+
+      function scheduleIdle() {
+        clearTimeout(idleTimer);
+        idleTimer = setTimeout(() => app.classList.add('user-idle'), IDLE_DELAY_MS);
+      }
+
+      function handleActivity(event) {
+        if (app.classList.contains('user-idle') && event.type === 'click') {
+          app.classList.remove('user-idle');
+        }
+        scheduleIdle();
+      }
+
+      ['mousemove', 'keydown', 'scroll', 'touchstart', 'click'].forEach(evt => {
+        document.addEventListener(evt, handleActivity, { passive: true });
+      });
+
+      scheduleIdle();
+    }
+
+    document.addEventListener('DOMContentLoaded', initIdlePresentation);
   </script>
 </head>
 <body>
@@ -252,8 +285,11 @@
         <!-- Header Card -->
         <section class="card">
           <h1 class="header-title">
-            <img src="assets/filtermusic-logo.svg" alt="FilterMusic" class="logo">
-            <span class="logo-tag">_sb &mdash; a Lyrion Music Server plugin</span>
+            <span class="header-title-brand">
+              <img src="assets/filtermusic-logo.svg" alt="FilterMusic" class="logo">
+              <span class="logo-suffix">_sb</span>
+            </span>
+            <span class="header-subtitle">A Lyrion Music Server plugin</span>
           </h1>
           <p class="text-secondary">
             Browse <a href="https://filtermusic.net">FilterMusic.net</a> radio stations from within Lyrion Music Server
